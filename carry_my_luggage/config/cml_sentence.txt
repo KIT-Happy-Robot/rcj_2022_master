@@ -1,0 +1,10 @@
+ファイル名: 文章
+/cml/start_cml: "Start carry my luggage"
+/cml/finish_cml: "Finish carry my luggage. Thank you very much"
+/cml/pass_mimi: "Please give it to me"
+/cml/pass_thank: "Thank you"
+/cml/follow_you: "I'll follow you. Please come in front of me."
+/cml/follow_lost: "I lost sight of you. Is this the location of the car?"
+/cml/follow_cont: "Ok, continue to follow. Please come in front of me"
+/cml/give_bag: "Here you are"
+/cml/return_start: "Return to start position"
