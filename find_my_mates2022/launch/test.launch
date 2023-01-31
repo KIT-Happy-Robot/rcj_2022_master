@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<launch>
+
+  <rosparam ns="/tmp_human_location" command="load" file="$(find happymimi_params)/location/tmp_human_location.yaml" />
+  <!-- <node name="fmm_master" pkg="find_my_mates" type="fmm_master.py" output="screen"/> -->
+
+</launch>

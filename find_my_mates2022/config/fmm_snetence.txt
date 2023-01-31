@@ -1,0 +1,13 @@
+ファイル名: 文章
+/fmm/start_fmm     : "Start find my mates"
+/fmm/finish_fmm    : "Finish find my mates. Thank you very much"
+/fmm/move_operator : "Move to operator"
+/fmm/move_guest    : "Move to guest"
+/fmm/start_q       : "Excuse me. I have a question for you"
+/fmm/finish_q      : "Thank you for your cooperation"
+/fmm/start_rep     : "I'll give you the guest information"
+/fmm/start_rep_here: "I'm sorry. I couldn't navigate to the operator's location. I will provide the features from here."
+
+/fmm/ask_again     : "Sorry. I'm going to ask you one more time."
+/fmm/answer_yn     : "Is this OK? Please answer yes or no"
+/fmm/sex_q         : "Are you a female? Please answer with yes or no"
