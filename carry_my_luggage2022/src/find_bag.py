@@ -6,12 +6,20 @@ import math as m
 import os
 import sys
 import roslib
+from std_msgs.msg import Bool
 from sensor_msgs.msg import LaserScan
+
+from happymimi_msgs.srv import StrTrg
+from happymimi_manipulation_msgs.srv import ArmControl
 
 teleop_path = roslib.packages.get_pkg_dir('happymimi_teleop')
 sys.path.insert(0, os.path.join(teleop_path, 'src/'))
 from base_control import BaseControl
 
+
+eef = rospy.Publisher('/servo/endeffector', Bool, queue_size=10)
+arm = rospy.ServiceProxy('/servo/arm', StrTrg)
+arm_debug = rospy.ServiceProxy('/servo/debug_arm', ArmControl)
 
 class ScanTester():
     def __init__(self):
@@ -47,9 +55,10 @@ class ScanTester():
         self.laser_list_rebuilding()
         count = 0
         while not rospy.is_shutdown():
+            rospy.sleep(0.05)
             self.spread_center(count, left_right)
             laser_average = self.average(self.center_range)
-            if laser_average - 0.3 > self.center_range[-1]:
+            if laser_average - 0.1 > self.center_range[-1]:
                 self.bag_range.append(count)
                 bag_dist.append(self.center_range[-1])
                 bag_average = sum(bag_dist)/len(bag_dist)
@@ -60,7 +69,6 @@ class ScanTester():
                 pass
             print(self.bag_range)
             count += 1
-            rospy.sleep(0.05)
         center_angle = self.bag_range[int(len(self.bag_range)/2 - 1)]
         return center_angle*0.18 if left_right == 'left' else -1*center_angle*0.18
 
@@ -91,8 +99,20 @@ if __name__ == '__main__':
     bc = BaseControl()
     rospy.sleep(0.5)
 
+    arm('carry')
+    eef.publish(False)
+
     move_angle = st.find_bag('right')
     rospy.sleep(0.1)
     print(move_angle)
-    bc.rotateAngle(move_angle, 0.2)
+    bc.rotateAngle(move_angle*1.2, 0.2)
+    rospy.sleep(1.0)
+    arm_debug([0.4, 0.55])
+    rospy.sleep(0.5)
+    bc.translateDist(st.laser_list[st.center_element]-0.1)
+    rospy.sleep(0.5)
+    eef.publish(True)
+    rospy.sleep(0.5)
+    arm('carry')
+    print('alpha')
     print('finish')

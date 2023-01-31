@@ -11,6 +11,8 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   rospy
   std_msgs
+  happymimi_msgs
+  happymimi_manipulation_msgs
 )
 
 ## System dependencies are found with CMake's conventions
