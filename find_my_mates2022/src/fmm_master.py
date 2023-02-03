@@ -39,19 +39,26 @@ class ApproachGuest(smach.State):
         # return 'approach_finish'
         guest_num = userdata.g_count_in
         guest_name = "human_" + str(guest_num)
+        self.bc.rotateAngle(100,0.2)
         # tts_srv("Move to guest")
         wave_srv("/fmm/move_guest")
+        
         rospy.sleep(0.5)
-        self.navi_srv('living room')
+        self.navi_srv('fmm')
+
         if guest_num == 0:
             self.head_pub.publish(0)
             rospy.sleep(1.0)
             result = self.gen_coord_srv().result
+            print(result)
         elif guest_num == 1:
             self.head_pub.publish(0)
             self.bc.rotateAngle(-55, 0.2)
             rospy.sleep(5.0)
             result = self.gen_coord_srv().result
+            print(result)
+            #self.bc.rotateAngle(-330,0.2)
+            rospy.sleep(1.0)
             # self.bc.rotateAngle(-10)
             # for i in range(3):
                 # result = self.gen_coord_srv().result
@@ -68,6 +75,7 @@ class ApproachGuest(smach.State):
         else:
             pass
         result = self.ap_srv(data = guest_name)
+        print(result)
         self.head_pub.publish(0)
         if result:
             return 'approach_finish'
@@ -98,7 +106,7 @@ class FindFeature(smach.State):
         # tts_srv("Excuse me. I have a question for you")
         wave_srv("/fmm/start_q")
         self.guest_name = self.ffv.getName()
-        print (self.guest_name)
+        #print (self.guest_name)
         self.guest_loc = self.li.nearPoint("human_" + str(userdata.g_count_in))
         self.gn_sentence = self.guest_name + " is near " + self.guest_loc
         # self.gn_sentence = (self.guest_name + " is near table")

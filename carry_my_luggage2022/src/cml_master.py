@@ -1,10 +1,10 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #----------------------------------------------------
 # Title: RCAP2021 Carry My Luggage
 # Author: Yusuke Kanazawa
-# Date: 2021/11/
-# Memo:
+# Date: 2021/11/26
+# Memo: 
 #----------------------------------------------------
 import rospy
 import roslib
@@ -15,6 +15,8 @@ import smach_ros
 from std_msgs.msg import String, Float64
 from geometry_msgs.msg import Twist
 from happymimi_msgs.srv import StrTrg
+
+from carry_my_luggage2022.srv import FindBagSrv
 from happymimi_voice_msgs.srv import YesNo
 from happymimi_navigation.srv import NaviLocation
 from happymimi_msgs.srv import StrTrg
@@ -26,12 +28,76 @@ from base_control import BaseControl
 #tts_srv = rospy.ServiceProxy('/tts', StrTrg)
 tts_srv = rospy.ServiceProxy('/waveplay_srv', StrTrg)
 
+class FindBag(smach.State):
+    def __init__(self):
+        smach.State.__init__(self, outcomes = ['find_success',
+                                               'find_failure'],
+                                   input_keys = ['find_angle_in'],
+                                   output_keys = ['find_angle_out'])
+        # Service
+        self.find_bag = rospy.ServiceProxy('/find_bag_server', FindBagSrv)
+        # Publisher
+        self.head_pub = rospy.Publisher('/servo/head', Float64, queue_size = 1)
+        # Subscriber
+        rospy.Subscriber('/left_right_recognition', String, self.poseCB)
+        # Module
+        self.base_control = BaseControl()
+        # Value
+        self.pose_msg = 'NULL'
+
+    def poseCB(self, receive_msg):
+        self.pose_msg = receive_msg.data
+
+    def subscribeCheck(self):
+        while not self.pose_msg and not rospy.is_shutdown():
+            rospy.loginfo('No pose data available ...')
+            rospy.sleep(0.5)
+
+    def execute(self, userdata):
+        tts_srv('/cml/which_bag')
+        self.head_pub.publish(-2.0)
+        self.subscribeCheck()
+        rospy.sleep(1.5)
+        if self.pose_msg == '0:left':
+            self.find_bag('right', [0.4, 0.55])
+        elif self.pose_msg == '0:right':
+            self.find_bag('left', [0.4, 0.55])
+        else:
+            pass
+        return 'find_success'
+
+        #find_angle = userdata.find_angle_in
+        #self.head_pub.publish(-2.0)
+        #rospy.sleep(1.5)
+        #while not rospy.is_shutdown():
+        #    rospy.sleep(0.5)
+        #    print(self.pose_msg)
+        #    if self.pose_msg == '0:left':
+        #        self.head_pub.publish(10)
+        #        tts_srv('/cml/find_bag')
+        #        self.base_control.rotateAngle(-find_angle)
+        #        userdata.find_angle_out = find_angle
+        #        tts_srv('/cml/bag_left')
+        #        return 'find_success'
+        #    elif self.pose_msg == '0:right':
+        #        self.head_pub.publish(10)
+        #        tts_srv('/cml/find_bag')
+        #        self.base_control.rotateAngle(find_angle)
+        #        userdata.find_angle_out = -find_angle
+        #        tts_srv('/cml/bag_right')
+        #        return 'find_success'
+        #    else:
+        #        print("else")
+        #        pass
+
+
 class GraspOrPass(smach.State):
     def __init__(self):
         smach.State.__init__(self, outcomes = ['GRASP_finish',
                                                'PASS_finish',
                                                'GRASP_failure'],
-                                   input_keys = ['GOP_count_in'])
+                                   input_keys = ['GOP_count_in',
+                                                 'find_angle_in'])
         # Publisher
         self.head_pub = rospy.Publisher('/servo/head', Float64, queue_size = 1)
         # ServiceProxy
@@ -42,8 +108,9 @@ class GraspOrPass(smach.State):
     def execute(self, userdata):
         rospy.loginfo('Executing state: GRASP_OR_PASS')
         if userdata.GOP_count_in == 0:
+            self.base_control.rotateAngle(userdata.find_angle_in)
+            rospy.sleep(0.5)
             self.base_control.translateDist(0.8)
-            tts_srv('/cml/pass_mimi')
             result = self.arm_srv('receive')
             tts_srv('/cml/pass_thank')
             self.arm_srv('carry')
@@ -58,7 +125,7 @@ class GraspOrPass(smach.State):
                 #tts_srv("Please give it to me again")
                 #return 'GRASP_failure'
         else:
-            self.head_pub.publish(10)
+            self.base_control.translateDist(-0.3)
             tts_srv('/cml/give_bag')
             self.arm_srv('give')
             self.head_pub.publish(0)
@@ -102,14 +169,12 @@ class Chaser(smach.State):
             if self.cmd_sub == 0.0 and self.find_msg == 'NULL':
                 self.find_msg = 'lost_stop'
                 self.start_time = time.time()
-            elif self.cmd_sub == 0.0 and now_time >= 7.0 and self.find_msg == 'lost_stop':
-                self.base_control.rotateAngle(0, 0)
+            elif self.cmd_sub == 0.0 and now_time >= 5.0 and self.find_msg == 'lost_stop':
                 tts_srv("/cml/car_question")
                 answer = self.yesno_srv().result
                 if answer:
                     self.chaser_pub.publish('stop')
                     self.base_control.rotateAngle(0, 0)
-                    self.base_control.translateDist(-0.3, 0.3)
                     userdata.PASS_count_out = pass_count + 1
                     return 'chaser_finish'
                 else:
@@ -118,16 +183,14 @@ class Chaser(smach.State):
                 self.start_time = time.time()
                 self.find_msg = 'lost_after'
             elif self.find_msg == "lost_after" and now_time >= 1.0:
-                self.base_control.rotateAngle(0, 0)
                 tts_srv("/cml/follow_lost")
                 self.find_msg = "lost_long"
-            elif self.find_msg == "lost_long" and now_time >= 12.0:
+            elif self.find_msg == "lost_long" and now_time >= 11.0:
                 tts_srv("/cml/car_question")
                 answer = self.yesno_srv().result
                 if answer:
                     self.chaser_pub.publish('stop')
                     self.base_control.rotateAngle(0, 0)
-                    self.base_control.translateDist(-0.3, 0.3)
                     userdata.PASS_count_out = pass_count + 1
                     return 'chaser_finish'
                 else:
@@ -145,11 +208,14 @@ class Return(smach.State):
         smach.State.__init__(self, outcomes = ['return_finish'])
         # Service
         self.navi_srv = rospy.ServiceProxy('/navi_location_server', NaviLocation)
+        self.base_control = BaseControl()
 
     def execute(self, userdata):
         rospy.loginfo('Executing state: RETURN')
         rospy.sleep(0.5)
-        self.navi_srv('operator')
+        self.base_control.rotateAngle(170, 0.3)
+        rospy.sleep(0.5)
+        self.navi_srv('cml')
         rospy.sleep(0.5)
         tts_srv("/cml/finish_cml")
         return 'return_finish'
@@ -158,18 +224,27 @@ class Return(smach.State):
 if __name__=='__main__':
     rospy.init_node('cml_master')
     rospy.loginfo("Start Carry My Luggage")
-    rospy.sleep(1.5)
     tts_srv("/cml/start_cml")
     sm_top = smach.StateMachine(outcomes = ['finish_sm_top'])
     sm_top.userdata.GOP_count = 0
+    sm_top.userdata.find_angle = 20
     with sm_top:
+        smach.StateMachine.add(
+                'FIND_BAG',
+                FindBag(),
+                transitions = {'find_success':'GRASP_OR_PASS',
+                               'find_failure':'FIND_BAG'},
+                remapping = {'find_angle_in':'find_angle',
+                             'find_angle_out':'find_angle'})
+
         smach.StateMachine.add(
                 'GRASP_OR_PASS',
                 GraspOrPass(),
                 transitions = {'GRASP_finish':'CHASER',
                                'PASS_finish':'RETURN',
                                'GRASP_failure':'GRASP_OR_PASS'},
-                remapping = {'GOP_count_in':'GOP_count'})
+                remapping = {'GOP_count_in':'GOP_count',
+                             'find_angle_in':'find_angle'})
 
         smach.StateMachine.add(
                 'CHASER',

@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env pythoan3
 # -*- coding: utf-8 -*-
 import os
 import yaml
@@ -10,6 +10,12 @@ import roslib
 from happymimi_msgs.srv import SimpleTrg, StrTrg, StrToStr, SetFloat, SetStr
 from happymimi_voice_msgs.srv import TTS, YesNo
 
+#from happymimi_voice_msgs.srv import StringToString
+#file_path = roslib.packages.get_pkg_dir('happymimi_teleop') + '/src/'
+#sys.path.insert(0, file_path)
+#from base_control import BaseControl 
+
+
 # tts_srv
 tts_srv = rospy.ServiceProxy('/tts', StrTrg)
 # wave_play
@@ -20,6 +26,8 @@ class FeatureFromVoice():
         # Service
         self.feature_srv = rospy.ServiceProxy('get_feature_srv', StrToStr)
         self.yes_no_srv = rospy.ServiceProxy('/yes_no', YesNo)
+        #self.getsex_srv = rospy.ServiceProxy('/gender_jg',StringToString)
+
         # Value
         self.name = "null"
         self.age  = "null"
@@ -79,6 +87,13 @@ class FeatureFromVoice():
         else:
             self.sex = "male"
         tts_srv("You are " + self.sex)
+
+        #req = self.name
+        #sel.sex = self.getsex_srv(req)
+        #tts_srv("You are " + self.sex)
+        print(self.sex)
+
+
         return self.sex
 
 class FeatureFromRecog():
@@ -89,10 +104,18 @@ class FeatureFromRecog():
         # Value
         self.height      = "null"
         self.cloth_color = "null"
+        #Topic
+        #self.head_pub = rospy.Publisher('/servo/head', Float64, queue_size = 1)
+        #self.bc = BaseControl()
+
 
     def getHeight(self):
+        #self.head_pub.publish(0)
+        #self.base_control.translateDist(-0.5,0.2)
+        
         # height = SetFloat()
         height = self.height_srv()
+        
         if height.data == -1:
             return False
         else:
@@ -114,11 +137,13 @@ class LocInfo():
         self.loc_name_list = list(self.loc_dict.keys())
         self.loc_name      = "null"
         self.result = 0.00
+        self.loc_result = "null"
 
     # 複数の座標のうちx, yに一番近い座標の名前を求める
     def nearPoint(self, target_name):
         self.loc_name = "null"
         self.human_dict = rospy.get_param('/tmp_human_location')
+        print(self.human_dict)
         h_rpy = self.human_dict[target_name]
         h_xy = (h_rpy[0], h_rpy[1])
         for i in range(len(self.loc_name_list)):
@@ -128,13 +153,13 @@ class LocInfo():
             if i == 0:
                 stdval = distance.euclidean(h_xy, l_xy)
             dist = distance.euclidean(h_xy, l_xy)
-            print (self.loc_name)
-            print (dist)
+            #print (self.loc_name)
+            #print (dist)
             if stdval > dist:
                 stdval = dist
-                loc_result = self.loc_name
-        print (loc_result)
-        return loc_result
+                self.loc_result = self.loc_name
+        print (self.loc_result)
+        return self.loc_result
 
 class SaveInfo():
     def __init__(self):
