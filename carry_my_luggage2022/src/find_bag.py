@@ -102,7 +102,7 @@ if __name__ == '__main__':
     arm('carry')
     eef.publish(False)
 
-    move_angle = st.find_bag('right')
+    move_angle = st.find_bag('left')
     rospy.sleep(0.1)
     print(move_angle)
     bc.rotateAngle(move_angle*1.2, 0.2)
