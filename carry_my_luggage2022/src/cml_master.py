@@ -22,6 +22,8 @@ base_path = roslib.packages.get_pkg_dir('happymimi_teleop') + '/src/'
 sys.path.insert(0, base_path)
 from base_control import BaseControl
 
+from find_bag import FindBag
+
 # tts_srv
 #tts_srv = rospy.ServiceProxy('/tts', StrTrg)
 tts_srv = rospy.ServiceProxy('/waveplay_srv', StrTrg)
@@ -38,37 +40,49 @@ class FindBag(smach.State):
         rospy.Subscriber('/left_right_recognition', String, self.poseCB)
         # Module
         self.base_control = BaseControl()
+        self.find_bag = FindBag()
         # Value
         self.pose_msg = 'NULL'
 
     def poseCB(self, receive_msg):
         self.pose_msg = receive_msg.data
 
+    def subscribeCheck(self):
+        while not self.pose_msg and not rospy.is_shutdown():
+            rospy.loginfo('No pose data available ...')
+            rospy.sleep(0.5)
+
     def execute(self, userdata):
         tts_srv('/cml/which_bag')
-        find_angle = userdata.find_angle_in
         self.head_pub.publish(-2.0)
+        self.subscribeCheck()
         rospy.sleep(1.5)
-        while not rospy.is_shutdown():
-            rospy.sleep(0.5)
-            print(self.pose_msg)
-            if self.pose_msg == '0:left':
-                self.head_pub.publish(10)
-                tts_srv('/cml/find_bag')
-                self.base_control.rotateAngle(-find_angle)
-                userdata.find_angle_out = find_angle
-                tts_srv('/cml/bag_left')
-                return 'find_success'
-            elif self.pose_msg == '0:right':
-                self.head_pub.publish(10)
-                tts_srv('/cml/find_bag')
-                self.base_control.rotateAngle(find_angle)
-                userdata.find_angle_out = -find_angle
-                tts_srv('/cml/bag_right')
-                return 'find_success'
-            else:
-                print("else")
-                pass
+        self.find_bag.bagGrasp(self.pose_msg.replace('0:'), [4.0, 5.5])
+        return 'find_success'
+
+        #find_angle = userdata.find_angle_in
+        #self.head_pub.publish(-2.0)
+        #rospy.sleep(1.5)
+        #while not rospy.is_shutdown():
+        #    rospy.sleep(0.5)
+        #    print(self.pose_msg)
+        #    if self.pose_msg == '0:left':
+        #        self.head_pub.publish(10)
+        #        tts_srv('/cml/find_bag')
+        #        self.base_control.rotateAngle(-find_angle)
+        #        userdata.find_angle_out = find_angle
+        #        tts_srv('/cml/bag_left')
+        #        return 'find_success'
+        #    elif self.pose_msg == '0:right':
+        #        self.head_pub.publish(10)
+        #        tts_srv('/cml/find_bag')
+        #        self.base_control.rotateAngle(find_angle)
+        #        userdata.find_angle_out = -find_angle
+        #        tts_srv('/cml/bag_right')
+        #        return 'find_success'
+        #    else:
+        #        print("else")
+        #        pass
 
 
 class GraspOrPass(smach.State):
