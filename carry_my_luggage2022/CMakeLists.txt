@@ -8,12 +8,12 @@ project(carry_my_luggage2022)
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
-  message_generation
   roscpp
   rospy
   std_msgs
   happymimi_msgs
   happymimi_manipulation_msgs
+  find_bag
   geometry_msgs
 )
 
@@ -58,10 +58,10 @@ find_package(catkin REQUIRED COMPONENTS
 # )
 
 ## Generate services in the 'srv' folder
-add_service_files(
-  FILES
-  FindBagSrv.srv
-)
+#add_service_files(
+#  FILES
+#  Service.srv
+#)
 
 ## Generate actions in the 'action' folder
 # add_action_files(
@@ -71,10 +71,10 @@ add_service_files(
 # )
 
 ## Generate added messages and services with any dependencies listed here
-generate_messages(
-  DEPENDENCIES
-  std_msgs
-)
+#generate_messages(
+#  DEPENDENCIES
+#  std_msgs
+#)
 
 ################################################
 ## Declare ROS dynamic reconfigure parameters ##
