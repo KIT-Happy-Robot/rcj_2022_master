@@ -1,5 +1,0 @@
-<launch>
-
-    <node pkg="happymimi_bringup" name="three_dimensional_data_processing" type="three_dimensional_data_processing.launch" />
-
-</launch>

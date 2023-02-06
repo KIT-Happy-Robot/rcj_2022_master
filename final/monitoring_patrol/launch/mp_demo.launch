@@ -1,0 +1,5 @@
+<!-- -*- mode: XML -*- -->
+<launch>
+  <rosparam file="$(find monitoring_patrol)/param/geo_coord_dict.yaml" command="load" ns="geo_coord_dict"/>
+  <node pkg="monitoring_patrol" name="aed_location_server" type="aed_location_server.py" output="screen" />
+</launch>
