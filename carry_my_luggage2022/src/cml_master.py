@@ -52,17 +52,20 @@ class FindBag(smach.State):
             rospy.loginfo('No pose data available ...')
             rospy.sleep(0.5)
 
-    def execute(self):
+    def execute(self, userdata):
         tts_srv('/cml/which_bag')
         self.head_pub.publish(-2.0)
         self.poseDataCheck()
         rospy.sleep(1.5)
-        if self.pose_msg == '0:left':
-            self.grasp_bag('right', [0.4, 0.55])
-        elif self.pose_msg == '0:right':
-            self.grasp_bag('left', [0.4, 0.55])
-        else:
-            pass
+        while not rospy.is_shutdown():
+            if self.pose_msg == '0:left':
+                self.grasp_bag('right', [0.4, 0.55])
+                break
+            elif self.pose_msg == '0:right':
+                self.grasp_bag('left', [0.4, 0.55])
+                break
+            else:
+                pass
         return 'find_success'
 
 
@@ -89,7 +92,7 @@ class Chaser(smach.State):
     def cmdCB(self, receive_msg):
         self.cmd_sub = receive_msg.linear.x
 
-    def execute(self):
+    def execute(self, userdata):
         rospy.loginfo('Executing state: CHASER')
         tts_srv("/cml/follow_you")
         self.chaser_pub.publish('start')
@@ -142,7 +145,7 @@ class PassBag(smach.State):
         # Module
         self.base_control = BaseControl()
 
-    def execute(self):
+    def execute(self, userdata):
         rospy.loginfo('Executing state: BagPass')
         self.base_control.translateDist(-0.3)
         tts_srv('/cml/give_bag')
@@ -159,7 +162,7 @@ class Return(smach.State):
         self.navi_srv = rospy.ServiceProxy('/navi_location_server', NaviLocation)
         self.base_control = BaseControl()
 
-    def execute(self):
+    def execute(self, userdata):
         rospy.loginfo('Executing state: RETURN')
         rospy.sleep(0.5)
         self.base_control.rotateAngle(170, 0.3)
@@ -198,4 +201,4 @@ if __name__=='__main__':
                 Return(),
                 transitions = {'return_finish':'finish_sm_top'})
 
-        outcome = sm_top.execute()
+    outcome = sm_top.execute()
