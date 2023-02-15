@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <launch>
 
-  <node name="height_estimation" pkg="person_feature_extraction" type="height_estimation.py" />
+
   <node name="detect_cloth_color" pkg="person_feature_extraction" type="detect_cloth_color.py" />
 
   <node name="fmm_master" pkg="find_my_mates2022" type="fmm_master.py" output="screen"/>

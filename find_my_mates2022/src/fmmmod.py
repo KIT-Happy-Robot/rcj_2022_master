@@ -8,7 +8,7 @@ import rospy
 import rosparam
 import roslib
 from happymimi_msgs.srv import SimpleTrg, StrTrg, StrToStr, SetFloat, SetStr
-from happymimi_voice_msgs.srv import TTS, YesNo
+from happymimi_voice_msgs.srv import TTS, YesNo, StringToString
 
 #from happymimi_voice_msgs.srv import StringToString
 #file_path = roslib.packages.get_pkg_dir('happymimi_teleop') + '/src/'
@@ -26,7 +26,7 @@ class FeatureFromVoice():
         # Service
         self.feature_srv = rospy.ServiceProxy('get_feature_srv', StrToStr)
         self.yes_no_srv = rospy.ServiceProxy('/yes_no', YesNo)
-        #self.getsex_srv = rospy.ServiceProxy('/gender_jg',StringToString)
+        self.getsex_srv = rospy.ServiceProxy('/gender_jg',StringToString)
 
         # Value
         self.name = "null"
@@ -40,7 +40,7 @@ class FeatureFromVoice():
     def getName(self):
         self.name = "null"
         for i in range(3):
-            name_res = self.feature_srv(req_data = "name")
+            name_res = self.feature_srv(req_data = "fmm name")
             print (name_res.res_data)
             if name_res.result:
                 self.name = name_res.res_data
@@ -77,15 +77,16 @@ class FeatureFromVoice():
                 wave_srv("/fmm/ask_again")
         return self.age
 
-    def getSex(self):
+    def getSex(self,req):
         self.sex = "null"
         # tts_srv("Are you a female? Please answer with yes or no")
-        wave_srv("/fmm/sex_q")
-        result = self.yes_no_srv().result
-        if result:
-            self.sex= "female"
+        #wave_srv("/fmm/sex_q")
+        #result = self.yes_no_srv().result
+        res = self.getsex_srv(req)
+        if res.result:
+            self.sex=res.result_data 
         else:
-            self.sex = "male"
+            self.sex = "null"
         tts_srv("You are " + self.sex)
 
         #req = self.name
@@ -93,34 +94,88 @@ class FeatureFromVoice():
         #tts_srv("You are " + self.sex)
         print(self.sex)
 
-
         return self.sex
 
+    
 class FeatureFromRecog():
     def __init__(self):
         # Service
-        self.height_srv = rospy.ServiceProxy('/person_feature/height_estimation', SetFloat)
+        #self.height_srv = rospy.ServiceProxy('/person_feature/height_estimation', SetFloat)
+        #服
         self.cloth_srv  = rospy.ServiceProxy('/person_feature/cloth_color', SetStr)
+        #ズボン
+        #self.pants_srv = rospy.ServiceProxy('/person_feature/pants_color', SetStr)
+        #顔
+        #self.skin_srv = rospy.ServiceProxy('/person_feature/skin_color', SetStr)
+        #髪
+        #self.hair_srv = rospy.ServiceProxy('/person_feature/hair_color', SetStr)
         # Value
-        self.height      = "null"
+        #self.height      = "null"
         self.cloth_color = "null"
+        #self.skin_color = "null"
+        #self.pants_color = "null"
+        #selk.hair_color = "null"
+        #self.mask ="null"
         #Topic
         #self.head_pub = rospy.Publisher('/servo/head', Float64, queue_size = 1)
         #self.bc = BaseControl()
+    
+    #def getPansColor(self):
+    #    self.pants_color = "null"
+    #    self.pants_color = self.pants_srv().result
+        
+    #    if self.pants_color == '':
+    #        return "none"
+
+    #    else:
+    #        return self.pants_color
 
 
-    def getHeight(self):
-        #self.head_pub.publish(0)
-        #self.base_control.translateDist(-0.5,0.2)
+    #def getSkinColor(self):
+    #    self.skin_color = "null"
+    #    self.skin_color =  self.skin_srv().result
         
-        # height = SetFloat()
-        height = self.height_srv()
+    #    if self.skin_color == '':
+    #        return "none"
+    #    else if self.skin_color == 'white':
+    #        self.mask = "mask"
+    #        return "none"
         
-        if height.data == -1:
-            return False
-        else:
-            self.height = str(round(height.data))
-            return self.height
+    #    else:
+    #        return self.skin_color
+    
+    #def getMask(self):
+    #    self.mask = "null"
+    #    self.mask = self.skin_srv().result
+
+    #    if self.skin_color == 'white':
+    #        self.mask = "wearing a mask"
+    #       return "none"
+    #    else:
+    #        self.mask = "not wearing a mask"
+
+
+    #def getHairColo(self):
+    #    self.hair_color = "null"
+    #    self.hair_color = self.hair_srv().result
+    #    if self.hair_color == '':
+    #        return "none"
+    #    else:
+    #        return self.hair_color
+
+
+    #def getHeight(self):
+    #    self.head_pub.publish(0)
+    #    self.base_control.translateDist(-0.5,0.2)
+    #    
+    #     height = SetFloat()
+    #    height = self.height_srv()
+    #    
+    #    if height.data == -1:
+    #        return False
+    #    else:
+    #        self.height = str(round(height.data))
+    #        return self.height
 
     def getClothColor(self):
         self.cloth_color = "null"
@@ -129,7 +184,6 @@ class FeatureFromRecog():
             return "none"
         else:
             return self.cloth_color
-
 class LocInfo():
     def __init__(self):
         self.loc_dict   = rospy.get_param('/location')

@@ -1,0 +1,16 @@
+
+
+---
+bool result
+
+uint8  accuracy
+
+string continent_code
+string country_code
+string country
+string prefecture
+string city
+string organization_name
+
+float64 latitude
+float64 longitude

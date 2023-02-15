@@ -1,0 +1,15 @@
+# from_address
+from:
+    mimi: 'kit.robocup.home@gmail.com'
+password:
+    mimi: 'gewretvedgpzlobj'
+
+# to_address
+to:
+    washio: 'c1115332@planet.kanazawa-it.ac.jp'
+    wada: 'c1100471@planet.kanazawa-it.ac.jp'
+    okuse: 'c1103809@planet.kanazawa-it.ac.jp'
+    myojin: 'c1100781@planet.kanazawa-it.ac.jp'
+    kanazawa: 'c1005073@planet.kanazawa-it.ac.jp'
+    asano: 'asano@neptune.kanazawa-it.ac.jp'
+    sawada: 'swd@neptune.kanazawa-it.ac.jp'

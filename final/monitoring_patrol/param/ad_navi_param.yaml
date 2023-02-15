@@ -1,0 +1,23 @@
+
+Fast:
+  acc_lim_x: 
+  acc_lim_y:
+  acc_lim_theta:
+  acc_lim_theta:
+  max_vel_trans:
+  min_vel_trans:   
+  max_vel_x: 
+  min_vel_x:
+  max_vel_y:
+  min_vel_y:
+  max_vel_theta:
+  min_vel_theta:
+
+  yaw_goal_tolerance:
+  xy_goal_tolerance:
+  trans_stopped_vel:
+  theta_stopped_vel:
+
+Default:
+  #restore_defaults: false #(bool default: false)
+

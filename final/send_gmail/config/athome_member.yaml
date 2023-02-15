@@ -1,0 +1,44 @@
+# from_address
+from:
+    mimi: 'kit.robocup.home@gmail.com'
+password:
+    mimi: 'gewretvedgpzlobj'
+
+# to_address
+to:
+    kanazawa:    'c1005073@planet.kanazawa-it.ac.jp'
+    matsuoka:    'c1049770@planet.kanazawa-it.ac.jp'
+    umehara:     'c1005198@planet.kanazawa-it.ac.jp'
+    kawasaki:    'c1013144@planet.kanazawa-it.ac.jp'
+    kubo:        'c1006812@planet.kanazawa-it.ac.jp'
+    suzuki:      'c1000333@planet.kanazawa-it.ac.jp'
+    washio:      'c1115332@planet.kanazawa-it.ac.jp'
+    wada:        'c1100471@planet.kanazawa-it.ac.jp'
+    okuse:       'c1103809@planet.kanazawa-it.ac.jp'
+    kawara toki: 'c1139136@planet.kanazawa-it.ac.jp'
+    myojin:      'c1100781@planet.kanazawa-it.ac.jp'
+    amo:         'c1101081@planet.kanazawa-it.ac.jp'
+    shinsa:      'c1141119@planet.kanazawa-it.ac.jp'
+    kawara:      'c1114180@planet.kanazawa-it.ac.jp'
+    yamaguchi:   'c1116171@planet.kanazawa-it.ac.jp'
+    takigawa:    'c1100552@planet.kanazawa-it.ac.jp'
+    yamada:      'c1110016@planet.kanazawa-it.ac.jp'
+    murakami:    'c1107045@planet.kanazawa-it.ac.jp'
+    all: ['c1005073@planet.kanazawa-it.ac.jp', 
+          'c1049770@planet.kanazawa-it.ac.jp', 
+          'c1005198@planet.kanazawa-it.ac.jp', 
+          'c1013144@planet.kanazawa-it.ac.jp', 
+          'c1006812@planet.kanazawa-it.ac.jp', 
+          'c1000333@planet.kanazawa-it.ac.jp', 
+          'c1115332@planet.kanazawa-it.ac.jp', 
+          'c1100471@planet.kanazawa-it.ac.jp', 
+          'c1103809@planet.kanazawa-it.ac.jp', 
+          'c1139136@planet.kanazawa-it.ac.jp', 
+          'c1100781@planet.kanazawa-it.ac.jp', 
+          'c1101081@planet.kanazawa-it.ac.jp', 
+          'c1141119@planet.kanazawa-it.ac.jp', 
+          'c1114180@planet.kanazawa-it.ac.jp', 
+          'c1116171@planet.kanazawa-it.ac.jp', 
+          'c1100552@planet.kanazawa-it.ac.jp', 
+          'c1110016@planet.kanazawa-it.ac.jp', 
+          'c1107045@planet.kanazawa-it.ac.jp']

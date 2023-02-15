@@ -1,0 +1,10 @@
+# req
+string file_name
+string from_address
+string password
+string[] to_address
+string subject
+string body
+---
+# res
+bool result

@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.0.2)
-project(rcj22_final)
+project(send_gmail)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
 # add_compile_options(-std=c++11)
@@ -8,6 +8,7 @@ project(rcj22_final)
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
+  message_generation
   roscpp
   rospy
   std_msgs
@@ -54,11 +55,12 @@ find_package(catkin REQUIRED COMPONENTS
 # )
 
 ## Generate services in the 'srv' folder
-# add_service_files(
-#   FILES
-#   Service1.srv
-#   Service2.srv
-# )
+add_service_files(
+  DIRECTORY
+  srv
+  FILES
+  SendGmail.srv
+)
 
 ## Generate actions in the 'action' folder
 # add_action_files(
@@ -68,10 +70,9 @@ find_package(catkin REQUIRED COMPONENTS
 # )
 
 ## Generate added messages and services with any dependencies listed here
-# generate_messages(
-#   DEPENDENCIES
-#   std_msgs
-# )
+generate_messages(
+  DEPENDENCIES
+)
 
 ################################################
 ## Declare ROS dynamic reconfigure parameters ##
@@ -104,8 +105,8 @@ find_package(catkin REQUIRED COMPONENTS
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
 #  INCLUDE_DIRS include
-#  LIBRARIES rcj_ex
-#  CATKIN_DEPENDS roscpp rospy std_msgs
+#  LIBRARIES send_gmail
+#  CATKIN_DEPENDS rospy std_msgs
 #  DEPENDS system_lib
 )
 
@@ -122,7 +123,7 @@ include_directories(
 
 ## Declare a C++ library
 # add_library(${PROJECT_NAME}
-#   src/${PROJECT_NAME}/rcj_ex.cpp
+#   src/${PROJECT_NAME}/send_gmail.cpp
 # )
 
 ## Add cmake target dependencies of the library
@@ -133,7 +134,7 @@ include_directories(
 ## Declare a C++ executable
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
-# add_executable(${PROJECT_NAME}_node src/rcj_ex_node.cpp)
+# add_executable(${PROJECT_NAME}_node src/send_gmail_node.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -197,7 +198,7 @@ include_directories(
 #############
 
 ## Add gtest based cpp test target and link libraries
-# catkin_add_gtest(${PROJECT_NAME}-test test/test_rcj_ex.cpp)
+# catkin_add_gtest(${PROJECT_NAME}-test test/test_send_gmail.cpp)
 # if(TARGET ${PROJECT_NAME}-test)
 #   target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
 # endif()
