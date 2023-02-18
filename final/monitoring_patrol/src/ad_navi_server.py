@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # just a location_name requesst is preferred
-# ��̊p�x�͕ς��Ȃ�
+# 首の角度は変えない
 import rospy
 import rosparam
 import dynamic_reconfigure.client
@@ -22,9 +22,10 @@ sys.path.insert(0, self_path)
 #from happymimi_navigation.srv import NaviCoord, NaviCoordRequest
 from monitoring_patrol.srv import AdNaviSrv, AdNaviSrvResponse
 
-
+# 拡張版オプション付き自律移動の実行クラス
 class AdNaviServer():
   def __init__(self):
+    rospy.loginfo("Initialize **AdNaviServer**")
     # TOPIC
     # Publisher
     #self.head_pub = rospy.Publisher('/servo/head', Float64, queue_size = 1)
@@ -32,11 +33,14 @@ class AdNaviServer():
     # SERVICE
     #from navi_coord import NaviCoordServer
     #self.NCS = NaviCoordServer()
-    #rospy.loginfo("ready to **Navi-Coord-Server**")
+    #self.navi_srv = rospy.ServiceProxy('navi_coord_server', NaviCoord)
+
     rospy.loginfo("ac_navi_server: ready to **Ad-Navi-Server**")
     self.an_ss = rospy.Service('/apps/ad_navi_server', AdNaviSrv, self.execute)
+    
+    # ACTION
     self.move_base_ac = actionlib.SimpleActionClient('/move_base', MoveBaseAction)
-    #self.navi_srv = rospy.ServiceProxy('navi_coord_server', NaviCoord)
+    
     self.dwa_c = dynamic_reconfigure.client.Client('/move_base/DWAPlannerROS')
     self.clear_costmap = rospy.ServiceProxy('/move_base/clear_costmaps', Empty)
     
@@ -49,7 +53,7 @@ class AdNaviServer():
     # Data
     self.mb_goal = MoveBaseGoal
     
-
+  # Requestの"option"に基づき、Naviのパラメーターを変更する関数
   def setParam(self, option = "default"): #!!
     if option == "fast_loose":
       self.dwa_c.update_configuration(self.navi_def_params)
@@ -57,6 +61,7 @@ class AdNaviServer():
       self.dwa_c.update_configuration(self.navi_def_params)
       rospy.sleep(0.5)
   
+  # ロケーション名の姿勢座標パラメーターを姿勢座標のリスト(self.target_coord)に格納する関数
   def name2Coord(self, location):
     if location in self.location_dict:
       self.target_coord = self.location_dict[location]
@@ -66,6 +71,7 @@ class AdNaviServer():
       rospy.logerr("<"+location+"> doesn't exist.")
       return AdNaviSrvResponse(result = False)
     
+  # 姿勢座標のリストからゴールを作成する関数
   def createGoal(self, coord_list):
     rospy.loginfo("ac_navi_server: Create move base goal")
     # set goal_pose
@@ -86,7 +92,7 @@ class AdNaviServer():
     
   def sendGoal(self, goal):
     rospy.loginfo("ac_navi_server: Send move base goal")
-    # ��͏グ�Ȃ�
+    # 首は上げない
     #self.head_pub.publish(0)
     self.move_base_ac.wait_for_server()
     self.move_base_ac.send_goal(goal)
