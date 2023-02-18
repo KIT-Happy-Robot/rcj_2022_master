@@ -1,3 +1,7 @@
+AdNaviConstructor:
+  server_type:
+    service: "service"
+    action: "action"
 
 FastLoose:
   acc_lim_x: 1.0 
