@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<launch>
+    <rosparam  ns="/ad_navi_param" command="load" file="$(find monitoring_patrol)/param/ad_navi_param.yaml" />
+
+    <node name="ad_navi_server" pkg="monitoring_patrol" type="ad_navi_server.py" output="screen" />
+
+</launch>

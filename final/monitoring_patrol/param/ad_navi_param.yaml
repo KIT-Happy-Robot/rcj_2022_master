@@ -1,23 +1,23 @@
 
-Fast:
-  acc_lim_x: 
-  acc_lim_y:
-  acc_lim_theta:
-  acc_lim_theta:
-  max_vel_trans:
-  min_vel_trans:   
-  max_vel_x: 
-  min_vel_x:
-  max_vel_y:
-  min_vel_y:
-  max_vel_theta:
-  min_vel_theta:
+FastLoose:
+  acc_lim_x: 1.0 
+  acc_lim_y: 0.0
+  acc_lim_theta: 0.5
+  acc_lim_theta: 0.7
+  max_vel_trans: 0.3
+  min_vel_trans: 0.0
+  max_vel_x: 0.6
+  min_vel_x: 0.0
+  max_vel_y: 0.0
+  min_vel_y: 0.0
+  max_vel_theta: 0.7
+  min_vel_theta: 0.0
 
-  yaw_goal_tolerance:
-  xy_goal_tolerance:
-  trans_stopped_vel:
-  theta_stopped_vel:
+  yaw_goal_tolerance: 0.15
+  xy_goal_tolerance: 0.50
+  trans_stopped_vel: 0.1
+  theta_stopped_vel: 0.1
 
 Default:
-  #restore_defaults: false #(bool default: false)
+  restore_defaults: True #(bool default: false)
 

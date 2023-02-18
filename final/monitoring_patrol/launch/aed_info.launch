@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <launch>
-    <node pkg="monitoring_patrol" type=""
+    <node name="aed_location_server" pkg="monitoring_patrol" type="aed_location_server.py" output="screen" />
     <rpsparam  ns="/geo_coord_dict" command="load" file="$(motoring_patrol)/param/geo_coord_dict.yaml" />
 
 </launch>

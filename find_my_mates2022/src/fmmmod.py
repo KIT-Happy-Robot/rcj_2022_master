@@ -106,13 +106,13 @@ class FeatureFromRecog():
         #ズボン
         #self.pants_srv = rospy.ServiceProxy('/person_feature/pants_color', SetStr)
         #顔
-        #self.skin_srv = rospy.ServiceProxy('/person_feature/skin_color', SetStr)
+        self.skin_srv = rospy.ServiceProxy('/person_feature/skin_color', SetStr)
         #髪
         #self.hair_srv = rospy.ServiceProxy('/person_feature/hair_color', SetStr)
         # Value
         #self.height      = "null"
         self.cloth_color = "null"
-        #self.skin_color = "null"
+        self.skin_color = "null"
         #self.pants_color = "null"
         #selk.hair_color = "null"
         #self.mask ="null"
@@ -131,18 +131,18 @@ class FeatureFromRecog():
     #        return self.pants_color
 
 
-    #def getSkinColor(self):
-    #    self.skin_color = "null"
-    #    self.skin_color =  self.skin_srv().result
+    def getSkinColor(self):
+        self.skin_color = "null"
+        self.skin_color =  self.skin_srv().result
         
-    #    if self.skin_color == '':
-    #        return "none"
-    #    else if self.skin_color == 'white':
-    #        self.mask = "mask"
-    #        return "none"
+        if self.skin_color == '':
+            return "none"
+        #else if self.skin_color == 'white':
+        #    self.mask = "mask"
+        #    return "none"
         
-    #    else:
-    #        return self.skin_color
+        else:
+            return self.skin_color
     
     #def getMask(self):
     #    self.mask = "null"
@@ -184,6 +184,7 @@ class FeatureFromRecog():
             return "none"
         else:
             return self.cloth_color
+
 class LocInfo():
     def __init__(self):
         self.loc_dict   = rospy.get_param('/location')

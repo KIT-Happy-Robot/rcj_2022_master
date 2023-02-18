@@ -11,24 +11,22 @@ find_package(catkin REQUIRED COMPONENTS
   rosparam
   std_msgs
   std_srvs
+  actionlib
   actionlib_msgs
   move_base_msgs
-
-  actionlib
   
   dynamic_reconfigure
   cv_bridge
 
   #ros_openpose_msgs
-  #happymimi_recognition_msgs
-  #happymimi_msgs
+  happymimi_recognition_msgs
+  happymimi_msgs
   #happymimi_manipulation_msgs
   #happymimi_navigation_msgs
   message_generation
 )
 find_package(OpenCV REQUIRED)
 
-## Generate messages in the 'msg' folder
 # add_message_files(
 #   FILES
 #   Message1.msg
@@ -36,14 +34,14 @@ find_package(OpenCV REQUIRED)
 # )
 
 add_service_files(
-  DIRECTORY
-  srv
+  #DIRECTORY
+  #srv
   FILES
   AedLocationInfo.srv
   GeoLocationInfo.srv
   DetectMotion.srv
   AdNaviSrv.srv
-  )
+)
 
 add_action_files(
   DIRECTORY
@@ -53,15 +51,16 @@ add_action_files(
 
 )
 
-## Generate added messages and services with any dependencies listed here
-#generate_messages(
-#  DEPENDENCIES
-#)
+generate_messages(
+  DEPENDENCIES
+  std_msgs
+  actionlib_msgs
+)
 
 catkin_package(
-#  INCLUDE_DIRS include
+  INCLUDE_DIRS include
 #  LIBRARIES monitoring_patrol
-#  CATKIN_DEPENDS roscpp rospy std_msgs
+  CATKIN_DEPENDS roscpp rospy std_msgs message_runtime
 #  DEPENDS system_lib
 )
 
@@ -70,7 +69,7 @@ catkin_package(
 ###########
 
 include_directories(
-# include
+  include
   ${catkin_INCLUDE_DIRS}
   ${OpenCV_INCLUDE_DIRS}
 )

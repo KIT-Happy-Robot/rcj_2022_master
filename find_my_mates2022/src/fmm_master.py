@@ -82,12 +82,11 @@ class ApproachGuest(smach.State):
         elif guest_num == 2:
             self.head_pub.publish(0)
             rospy.sleep(1.0)
-            self.bc.translateDist(0.6,0.2)
-            rospy.sleep(1.0)
+            #self.bc.translateDist(0.5,0.2)
+            #rospy.sleep(1.0)
             self.bc.rotateAngle(-90, 1.0)
             rospy.sleep(1.0)
-            #self.bc.translateDist(0.1,0.2)
-            rospy.sleep(1.0)    
+            #self.bc.translateDist(0.1,0.2)   
             #result = self.ap_srv(data = human_1)
             #rospy.sleep(2.0)
             result = self.gen_coord_srv().result
@@ -125,7 +124,7 @@ class FindFeature(smach.State):
         self.head_pub.publish(-20)
         # tts_srv("Excuse me. I have a question for you")
         wave_srv("/fmm/start_q")
-        self.base_control.translateDist(0.1,0.3)            
+        self.base_control.translateDist(0.3,0.2)            
         self.guest_name = self.ffv.getName()
         #print (self.guest_name)
         self.guest_loc = self.li.nearPoint("human_" + str(userdata.g_count_in))
@@ -135,17 +134,16 @@ class FindFeature(smach.State):
         if userdata.g_count_in == 0:
             # self.f1_sentence = "Height is " + self.ffr.getHeight()
             # self.f2_sentence = "Cloth color is " + self.ffr.getClothColor()
-            self.f1_sentence = "Gender is " + self.ffv.getSex(self.guest_name)
-                        
+            self.f1_sentence = "Gender is " + self.ffv.getSex(self.guest_name)            
             self.f2_sentence = "Age is " + self.ffv.getAge()
         elif userdata.g_count_in == 1:
             self.head_pub.publish(0)
-            self.base_control.translateDist(-0.2,0.2)
+            self.base_control.translateDist(-0.3,0.2)
             rospy.sleep(0.5)
             self.head_pub.publish(-15)
             rospy.sleep(0.5)
             #self.f1_sentence = "Height is about " + self.ffr.getHeight() + " cm"
-            #self.f1_sentence = "Skin color is " + self.ffr.getSkinColor()
+            self.f1_sentence = "Skin color is " + self.ffr.getSkinColor()
             self.f2_sentence = "Cloth color is " + self.ffr.getClothColor()
             # self.f2_sentence = "Age is " + self.ffv.getAge()
         elif userdata.g_count_in == 2:

@@ -3,7 +3,7 @@
 ---
 bool result
 
-uint8  accuracy
+uint16  accuracy
 
 string continent_code
 string country_code

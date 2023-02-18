@@ -3,7 +3,7 @@ string location_name
 uint16 radius
 ---
 bool  result
-uint8 aed_num
+uint16 aed_num
 
 uint16 dist
 

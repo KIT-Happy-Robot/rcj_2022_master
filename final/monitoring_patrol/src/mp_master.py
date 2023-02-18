@@ -2,17 +2,21 @@
 # -*- coding: utf-8 -*-
 
 #import time, datetime
-import sys, roslib
 import rospy
-from std_msgs.msg import String, Float64
-# Action
+import smach
 from smach_ros import ActionServerWrapper
+from std_msgs.msg import Bool, String, Float64
+# Action
 # MP features
-from mp_master.action import MpAction
-from send_gmail.srv import SendGmail*
-from aed_location_server.srv import AedLocationInfo*
-#from monitoring_patrol.srv import LyingHumanHeight*, AedLocationInfo*, BioDetection*, Biometric*
-from monitoring_patrol.action import BodyMotionDetection, PatrolRoom
+#from mp_master.action import MpAction
+import sys, roslib
+mp_path = roslib.packages.get_pkg_dir("monitoring_patrol")
+sys.path.imsert(0, mp_path)
+from monitoring_patrol.srv import AdNaviSrv
+from send_gmail.srv import SendGmail
+from monitoring_patrol.srv import AedLocationInfo
+from monitoring_patrol.srv import LyingHumanHeight #, BioDetection*, Biometric*
+from monitoring_patrol.action import BodyMotionDetectAct #, PatrolRoom
 #-----------------------------
 # recognition ---
 from happymimi_recognition_msgs.srv import RecognitionFind, RecognitionFindRequest
@@ -28,7 +32,7 @@ sec_happymimi_voice_path = roslib.packages.get_pkg_dir("happymimi_voice")+"/../c
 from geometry_msgs.msg import Twist
 from happymimi_navigation.srv import NaviLocation
 navi_sc = rospy.ServiceProxy('/navi_location_server', NaviLocation)
-from real_time_navi.srv import RealTimeNavi
+from real_time_navi.srv import RealTimeNavi #!!
 
 HT_PATH = roslib.packages.get_pkg_dir('happymimi_teleop') + '/src/'
 sys.path.insert(0, HT_PATH)
@@ -37,20 +41,39 @@ bc = BaseControl()
 
 
 # スタート
-# Ver1： 定位置からスタート
-# Ver2： 部屋の外か中か判定して、未知の位置でPatrolに遷移
+# Ver1： 定位置へ着いてからスタート。　スタート位置に付けなければ失敗
+# Ver2： 部屋の外からでも対応。未知の位置でPatrolに遷移
 class Start(smach.State):
     def __init__(self):
-        smach.State.__init__(self, outcomes = ['start_finish'])
+        smach.State.__init__(self, outcomes = ["start_succeeded", "start_failed",
+                                               "to_Back"],
+                             input_keys = ["start_loop_lim_in"])
+        self.navi_sc = rospy.ServiceProxy('/navi_location_server', NaviLocation)
 
     def execute(self, userdata):
-        rospy.loginfo("Executing state: Start")
-        tts_sc("Start monitering patrol")
-        # 諸定位置に移動
-        navi_sc('first_search_point')
-        return 'start_finish'
+        navi_count = 1
+        start_loop_lim = userdata.start_loop_lim_in
+        rospy.loginfo("MP: Executing state: Start")
+        tts_sc("Start room patrol")
+    # 部屋まで位置に移動
+        # ナビを制限回数内で実行
+        while not navi_count > start_loop_lim:
+            navi_res = self.navi_sc("start_pos").result
+            if navi_res: return "start_succeeded" #!!
+            else: navi_count =+ 1
+        return "start_failed"
+    
+        # navi_res = self.navi_sc("start_pos").result
+        # if navi_res: return "start_succeeded"
+        # # ナビが失敗したら、指定回数でやり直す
+        # else:
+        #     navi_count =+ 1
+        #     # 指定回数でナビが失敗したらBackへ遷移する
+        #     if navi_count > start_loop_lim: return "to_Back"
+        #     else: return "start_failed"
+                
 
-# Ver1： WayPointに沿って移動し、人を探す
+# Ver1： WayPointに沿って移動し、ターゲットを探す
 #       移動中に並列処理でPersonSerchしたい
 #        i_tra: Start     | o_tra: Charm, Observe,
 #        i_key: human_num |
@@ -64,8 +87,15 @@ class PatrolRoom(smach.State):
         smach.State.__init__(self,outcomes=['lying','standing',
                                             'not_found_one','not_found_two'])
         self.find_sc = rospy.ServiceProxy('/recognition/find', RecognitionFind)
+    #!! 首を下げて常に人を探す
     def execute(self, userdata):
-        print("Executing state : PatrolRoom")
+        rospy.loginfo("MP: Executing state: Patrol room")
+        self.search_sub = rospy.Subscriber('/mp/detect_target', #Bool,  ) #!!
+        
+        while not self.search_sub.data:
+        
+        tts_sc("Searching the target")
+        # 首を下げて、探し回す
         # !! 3WayPoint移動＆Search
         while self.find_sc(RecognitionFindRequest(target_name='person')).result == False:
         
@@ -120,7 +150,7 @@ class Call(smach.State):
 # o_tra: charm_done
 # ご愛嬌 Hi5
 class Charm(smach.State):
-
+  pass
 
 # i_tra: no_human, 
 #
@@ -137,12 +167,16 @@ def mpSmach():
     top = smach.StateMachine(outcomes = ["mp_succeeded",
                                          "mp_aborted",
                                          "mp_preempted"])
+    top.userdata.start_loop_lim = 2
     top.userdata.human_num = 0
     top.userdata.warn_level = 0
     top.userdata.action_order = ""
     with top:
         smach.StateMachine.add('Start', Start(),
-                                transitions = {'start_finish':'PatrolRoom'})
+                                transitions = {'start_finish':'PatrolRoom',
+                                               "start_failed":"Start",
+                                               "to_Back":"Back"},
+                                remapping = {"start_loop__lim_in":"start_loop_lim"})
         smach.StateMachine.add('PatrolRoom', PatrolRoom(),
                                 transitions = {'found_lying':'TalkAndAlert',
                                             'found_standing':'Back',
@@ -197,6 +231,7 @@ def runMpAcserver():
     rospy.spin()
 
 def mpAcclientTest():
-  
+  pass
+
 if __name__ == '__main__':
     pass
