@@ -24,7 +24,7 @@ from monitoring_patrol.srv import AdNaviSrv, AdNaviSrvResponse
 
 # 拡張版オプション付き自律移動の実行クラス
 class AdNaviServer():
-  def __init__(self):
+  def __init__(self, server_type = service):
     rospy.loginfo("Initialize **AdNaviServer**")
     # TOPIC
     # Publisher
@@ -129,7 +129,7 @@ class AdNaviServer():
     # Create Goal
     self.createGoal(self.target_coord)
     # Send Goal
-      
+    self.sendGoal(self.goal)
       
       
       
