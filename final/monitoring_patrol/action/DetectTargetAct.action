@@ -1,0 +1,11 @@
+# goal
+string[] target_object
+
+---
+# result
+bool result
+geometry_msgs/Point point
+
+---
+# feedback
+bool result

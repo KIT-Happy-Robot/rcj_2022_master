@@ -1,16 +1,16 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #-------------------------------------------------------------------
 # Desc: 
 # Author: Hiroto Washio
 # Date: 17/02/2022
 #-------------------------------------------------------------------
-import time, datetime
+
 import sys
 import rospy
 from std_msgs.msg import String, Float64
 import smach
-import smach_ros
+# import smach_ros
 import roslib
 from happymimi_msgs.srv import StrTrg
 sys.path.insert(0, '/home/athome/catkin_ws/src/mimi_common_pkg/scripts')
@@ -48,7 +48,7 @@ class Start(smach.State):
     def execute(self, userdata):
         rospy.loginfo("Executing state: Start")
         tts_srv("It's time to confirm")
-        self.navi_srv('first_search_point')
+        self.navi_srv('start')
         return 'start_finish'
 
 class SearchPerson(smach.State):
@@ -68,7 +68,8 @@ class SearchPerson(smach.State):
     def execute(self, userdata):
         print("Executing state : SearchPerson")
         navi_counter =+ 1
-        self.head_pub.publish(25)
+        self.bc.rotateAngle(-45, 0.5)
+        self.head_pub.publish(35)
         rospy.sleep(1.5)
         self.find_result = self.find_srv(RecognitionFindRequest(target_name='person')).result
         rospy.sleep(1.0)
@@ -79,7 +80,7 @@ class SearchPerson(smach.State):
             request.target_name = "person"
             centroid = rt.localizeObject(request).point
             person_height = centroid.z
-            print person_height
+            prin(person_height)
             standard_z = 0.4
             if person_height >= standard_z:
                 self.head_pub.publish(0)
@@ -90,10 +91,10 @@ class SearchPerson(smach.State):
                 #now_time = now_dt.time()
                 #print now_dt
                 #print now_time
-                tts_srv("What's up. Howdy?")
+                tts_srv("What's up?")
                 return 'found_standing'
             else:
-                tts_srv("Hi!,,,Oh! you lying down!")
+                tts_srv("Hi! Found you lying down!")
                 target_name = 'lying_person'
                 self.real_time_navi('set')
                 return 'found_lying'
@@ -102,14 +103,14 @@ class SearchPerson(smach.State):
             print("found a person.")
             tts_srv("found no person.")
             if navi_counter == 1:
-                tts_srv("moving to another point")
-                self.navi_srv('sec_search_point')
+                tts_srv("clear")
+                self.navi_srv('search_2')
                 rospy.sleep(0.5)
                 rospy.loginfo('finish moving to another place')
                 return 'not_found_one'
             elif navi_counter > 1:
-                print"found no person again"
-                tts_srv("Found no person again. He is out of this house now")
+                print("found no person again")
+                tts_srv("Found no person again.")
                 return 'not_found_two'
 
 class TalkAndAlert(smach.State):
@@ -123,12 +124,12 @@ class TalkAndAlert(smach.State):
     def execute(self, userdata):
         print("Executing state : TalkAndAlert")
         for i in range(3):
-            tts_srv("Are you sleeping")
+            tts_srv("Are you okey")
             #yes_no_result = self.yes_no_srv().result#####
             self.find_result = self.find_srv(RecognitionFindRequest(target_name='person')).result
             # 人が居なかった場合
             if self.find_result == False:
-                print 'The person is away here'
+                print('The person is away here')
                 tts_srv("You are out of my eyes. You probably woke up")
                 return 'to_exit'
             #　人を見つけた場合
@@ -138,13 +139,13 @@ class TalkAndAlert(smach.State):
             request.target_name = "person"
             centroid = rt.localizeObject(request).point
             person_height = centroid.z
-            print person_height
+            print(person_height)
             standard_z = 0.4
             #if person_height > standard_z or yes_no_result == True or yes_no_result == False:  #　voice
             #　見つけた人が立っていた場合
             if person_height > standard_z :
                 self.head_pub.publish(0)
-                print("Confirm that you are awake")
+                print("you are awake")
                 #tts_srv("How are you?")
                 #tts_srv("I'm sorry to prevent you from sleeping though, I think it's better to sleep on your facking bed")
                 return 'to_exit'
@@ -155,7 +156,7 @@ class TalkAndAlert(smach.State):
         else:
             for i in range(3):
                 playsound(happymimi_voice_path)
-                print 'send mail for help'
+                print('send mail for help')
                 self.mail_srv('kit.robocup.home@gmail.com',
                               'gewretvedgpzlobj',
                              ['c1100781@planet.kanazawa-it.ac.jp',
@@ -163,19 +164,19 @@ class TalkAndAlert(smach.State):
                               '【KitHappyRobot】人名に関するお知らせ',
                               '家で人が意識不明の状態で倒れています。' + '至急、救急車を呼んでください。',
                              )
-                tts_srv("A person is lying down and lose conciousness")
+                tts_srv("A person losing conciousness")
                 request = RecognitionLocalizeRequest()
                 request.target_name = "person"
                 centroid = rt.localizeObject(request).point
                 person_height = centroid.z
-                print person_height
+                print(person_height)
                 standard_z = 0.4
                 
                 if person_height > standard_z:
                     self.head_pub.publish(0)
-                    print("Confirm that a person stand")
-                    tts_srv("Waht's up. Are you OK?")
-                    tts_srv("I'm sorry to prevent you from sleeping though, but I think it's better to sleep in your bed")
+                    print("Confirm you stand")
+                    tts_srv("Are you OK?")
+                    tts_srv("take a nap")
                     return 'to_exit'
                     break
                 else:
@@ -229,7 +230,7 @@ class Exit(smach.State):
         while (time.time() - start_time) <= stop_time:
             playsound(sec_happymimi_voice_path)
 
-        self.navi_srv("start_point")
+        self.navi_srv("start")
         print("finish confirming of human life safety")
         tts_srv("finish confirming")
         return 'all_finish'

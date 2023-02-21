@@ -30,6 +30,7 @@ class ApproachGuest(smach.State):
         self.gen_coord_srv = rospy.ServiceProxy('/human_coord_generator', SimpleTrg)
         self.ap_srv = rospy.ServiceProxy('/approach_person_server', StrTrg)
         self.navi_srv = rospy.ServiceProxy('navi_location_server', NaviLocation)
+        self.navi_coord_srv = rospy.ServiceProxy('navi_coord_server', NaviCoord)
         # Topic
         self.head_pub = rospy.Publisher('/servo/head', Float64, queue_size = 1)
         self.bc = BaseControl()
@@ -38,7 +39,10 @@ class ApproachGuest(smach.State):
         rospy.loginfo("Executing state: APPROACH_GUEST")
         # return 'approach_finish'
         guest_num = userdata.g_count_in
-        guest_name = "human_" + str(guest_num)
+        #guest_name = "human_" + str(guest_num)
+        guest_name = "human_0"
+       #human_loc = rospy.get_param('/tmp_human_location')
+        
         self.bc.rotateAngle(180,1.0)
         # tts_srv("Move to guest")
         wave_srv("/fmm/move_guest")
@@ -59,6 +63,7 @@ class ApproachGuest(smach.State):
             print(result)
             #rospy.sleep(1.0)
             #result = self.ap_srv(data = human_0)
+            #result = self.ap_srv(data = guest_name)
 
         elif guest_num == 1:
             self.head_pub.publish(0)
@@ -79,6 +84,7 @@ class ApproachGuest(smach.State):
                 # else:
                     # break
                     # self.bc.rotateAngle(-10)
+            #result = self.ap_srv(data = guest_name)
         elif guest_num == 2:
             self.head_pub.publish(0)
             rospy.sleep(1.0)
@@ -90,6 +96,9 @@ class ApproachGuest(smach.State):
             #result = self.ap_srv(data = human_1)
             #rospy.sleep(2.0)
             result = self.gen_coord_srv().result
+            human_loc = rospy.get_param('/tmp_human_location')
+            self.human_cord = human_loc[human_1]
+            self.navi_coord_srv (loc_coord = human_1)
         else:
             pass
         result = self.ap_srv(data = guest_name)

@@ -48,13 +48,15 @@ add_action_files(
   action
   FILES
   MpAction.action
-
+  AdNaviAct.action
+  DetectTargetAct.action
 )
 
 generate_messages(
   DEPENDENCIES
   std_msgs
   actionlib_msgs
+  geometry_msgs
 )
 
 catkin_package(

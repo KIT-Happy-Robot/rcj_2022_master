@@ -3,7 +3,7 @@
 
 
   <node name="detect_cloth_color" pkg="person_feature_extraction" type="detect_cloth_color.py" />
-  <node name="detect_skin_color" pkg="person_feature_extraction" type="detect_skin_color.py"/>
+  <node name="detect_skin_color" pkg="person_feature_extraction" type="detect_skin_colorv2.py"/>
   <node name="fmm_master" pkg="find_my_mates2022" type="fmm_master.py" output="screen"/>
 
 </launch>
