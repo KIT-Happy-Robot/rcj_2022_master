@@ -13,24 +13,24 @@ import sys
 import roslib
 #mimi_navi_path = roslib.packages.get_pkg_dir("happymimi_navigation")
 self_path = roslib.packages.get_pkg_dir("monitoring_patrol")
-sys.path.insert(0, self_path)
-#sys.path.insert(0, "/${HOME}/test_ws/src/dev_noe/task/rcj22/final/")
+sys.path.insert(0, "/${HOME}/test_ws/src/dev_noe/task/rcj22/final/")
 #sys.path.insert(0, mimi_navi_path)
 
-self_src_path = roslib.packages.get_pkg_dir("monitoring_patrol") + "/src"
-sys.path.insert(0, self_src_path)
-from monitoring_patrol.msg import AdNaviActAction, AdNaviActResult, AdNaviActFeedback
+#sys.path.insert(0, "${HOME}/test_ws/src/dev_noe/task/rcj22/final")
+self_path = roslib.packages.get_pkg_dir("monitoring_patrol") + "/src"
+sys.path.insert(0, self_path)
+#from happymimi_navigation.srv import NaviCoord, NaviCoordRequest
 from monitoring_patrol.srv import AdNaviSrv, AdNaviSrvResponse, AdNaviSrvRequest
+# from monitoring_patrol.srv import AdNaviAct*
 
 
 
 # 拡張版オプション付き自律移動の実行クラス
 class AdNaviServer():
-  navi_params_dict = rospy.get_param("/ad_navi_param")
-  server_type_in = navi_params_dict["AcNaviConstructor"]["server_type"]
-  # server_type_dict = rospy.get_param("/ad_navi_param/AdNaviConstructor")
-  # server_type_in = server_type_dict["server_type"]
-  def __init__(self, server_type = server_type_in):
+  #navi_params_dict = rospy.get_param("/ad_navi_param")
+  #server_type_dict = rospy.get_param("/ad_navi_param/AdNaviConstructor")
+  #server_type_in = server_type_dict["server_type"]
+  def __init__(self):  #, server_type = server_type_in):
     rospy.loginfo("Initialize **AdNaviServer**")
     # TOPIC
     # Subscriber
@@ -39,23 +39,21 @@ class AdNaviServer():
     #self.head_pub = rospy.Publisher('/servo/head', Float64, queue_size = 1)
     
     # SERVICE
-    # rospy.loginfo("ac_navi_server: ready to **ad_navi_server**")
-    # self.an_ss = rospy.Service('/apps/ad_navi_server', AdNaviSrv, self.serviceCB)
+    rospy.loginfo("ac_navi_server: ready to **ad_navi_server**")
+    self.an_ss = rospy.Service('/apps/ad_navi_server', AdNaviSrv, self.serviceCB)
     self.clear_costmap = rospy.ServiceProxy('/move_base/clear_costmaps', Empty)
     
-    if server_type == "service":   
-      rospy.loginfo("ac_navi_server: ready to **ad_navi_server**")
-      self.an_ss = rospy.Service('/apps/ad_navi_server', AdNaviSrv, self.serviceCB)
-    elif server_type == "action":
-      rospy.loginfo("ac_navi_server: ready to **ad_navi_acserver**")
-      self.an_ss = actionlib.SimpleActionServer('/apps/ad_navi_acserver', AdNaviAct,
-                                              execute_cb = self.actionVB, auto_start = False
-                                              )
+    # if server_type == "service":   
+    #   rospy.loginfo("ac_navi_server: ready to **ad_navi_server**")
+    #   self.an_ss = rospy.Service('/apps/ad_navi_server', AdNaviSrv, self.serviceCB)
+    # elif server_type == "action":
+    #   rospy.loginfo("ac_navi_server: ready to **ad_navi_acserver**")
+    #   self.an_ss = actionlib.SimpleActionServer('/apps/ad_navi_acserver', AdNaviAct, self.)
     
     # ACTION
-    # rospy.loginfo("ac_navi_server: ready to **ad_navi_acserver**")
+    rospy.loginfo("ac_navi_server: ready to **ad_navi_acserver**")
     # self.an_ss = actionlib.SimpleActionServer('/apps/ad_navi_acserver', AdNaviAct,
-    #                                           execute_cb = self.actionVB, auto_start = False
+    #                                           execute_cb = self.actionVB,
     #                                           )
     self.move_base_ac = actionlib.SimpleActionClient('/move_base', MoveBaseAction)
     
@@ -129,7 +127,7 @@ class AdNaviServer():
     self.move_base_ac.wait_for_result()
     navi_act_state = self.move_base_ac.get_state()
     while not rospy.is_shutdown():
-      navi_act_state = self.ac.get_state()
+      # navi_act_state = self.ac.get_state()
       if navi_act_state == 3:
         rospy.loginfo('ad_navi: Navigation success!!')
         #!!
@@ -163,7 +161,9 @@ class AdNaviServer():
     else: return response.result == False
     
   # アクションサーバー
-  # def
+  # 
+  def hoge(self):
+    pass
     
       
   # Requestに基づき、Naviの実行結果を返す

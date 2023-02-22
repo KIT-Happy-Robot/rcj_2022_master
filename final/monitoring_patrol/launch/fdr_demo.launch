@@ -1,13 +1,14 @@
 <!-- -*- mode: XML -*- -->
 <launch>
-  <rosparam file="$(find monitoring_patrol)/param/geo_coord_dict.yaml" command="load" ns="geo_coord_dict"/>
 
   <node pkg="monitoring_patrol" name="old_fdr_master" type="old_fdr_master.py" output="screen" />
-  <node pkg="monitoring_patrol" name="ad_navi_server" type="ad_navi_server.py" output="screen" />
-    <rosparam  ns="/ad_navi_param" command="load" file="$(find monitoring_patrol)/param/ad_navi_param.yaml" />
-  <!--<node pkg="monitoring_patrol" name="mp_demo" type="mp_demo.py" output="screen" />-->
+  <!-- <node pkg="monitoring_patrol" name="ad_navi_server" type="ad_navi_server.py" output="screen" /> -->
+    <!-- <rosparam  ns="/ad_navi_param" command="load" file="$(find monitoring_patrol)/param/ad_navi_param.yaml" /> -->
+
   <node pkg="monitoring_patrol" name="aed_location_server" type="aed_location_server.py" output="screen" />
     <rosparam file="$(find monitoring_patrol)/param/geo_coord_dict.yaml" command="load" ns="geo_coord_dict"/>
   <node pkg="real_time_navi" name="realtime_navi_server" type="realtime_navi_server.py" output="screen" />
-
+  <node pkg="send_gmail" name="send_gmail_server" type="send_gmail_server.py" output="screen" />
+  <node pkg="person_feature_extraction" name="falling_down" type="falling_down.py" output="screen" />
+  <!-- <node pkg="person_feature_extraction" name="motion_detection" type="motion_detection.py" output="screen" /> -->
 </launch>

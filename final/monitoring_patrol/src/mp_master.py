@@ -1,23 +1,22 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-#import time, datetime
 import rospy
 import smach
 from smach_ros import ActionServerWrapper
 from std_msgs.msg import Bool, String, Float64
 # Action
-# MP features
+# MP features ---
 #from mp_master.action import MpAction
 import sys, roslib
 mp_path = roslib.packages.get_pkg_dir("monitoring_patrol")
 sys.path.imsert(0, mp_path)
-from monitoring_patrol.srv import AdNaviSrv
 from send_gmail.srv import SendGmail
-from monitoring_patrol.srv import AedLocationInfo
-from monitoring_patrol.srv import LyingHumanHeight #, BioDetection*, Biometric*
-from monitoring_patrol.action import BodyMotionDetectAct #, PatrolRoom
-#-----------------------------
+from monitoring_patrol.srv import (AedLocationInfo,
+                                   LyingHumanHeight,
+                                   AdNaviSrv) #, BioDetection*, Biometric*
+from monitoring_patrol.action import (MpAct )
+#from monitoring_patrol.action import BodyMotionDetectAct #, PatrolRoom
 # recognition ---
 from happymimi_recognition_msgs.srv import RecognitionFind, RecognitionFindRequest
 from happymimi_recognition_msgs.srv import RecognitionLocalize, RecognitionLocalizeRequest
@@ -26,8 +25,10 @@ from playsound import playsound
 from happymimi_voice_msgs.srv import *
 from happymimi_msgs.srv import StrTrg
 tts_sc = rospy.ServiceProxy('/tts', StrTrg) #!! ( ,TTS)
-happymimi_voice_path = roslib.packages.get_pkg_dir("happymimi_voice")+"/../config/wave_data/aram.wav"
-sec_happymimi_voice_path = roslib.packages.get_pkg_dir("happymimi_voice")+"/../config/wave_data/ga9du-ecghy2.wav"
+happymimi_voice_path = (roslib.packages.get_pkg_dir("happymimi_voice")
+                        +"/../config/wave_data/aram.wav")
+sec_happymimi_voice_path = (roslib.packages.get_pkg_dir("happymimi_voice")
+                            +"/../config/wave_data/ga9du-ecghy2.wav")
 # MC ------------
 from geometry_msgs.msg import Twist
 from happymimi_navigation.srv import NaviLocation
@@ -40,81 +41,92 @@ from base_control import BaseControl
 bc = BaseControl()
 
 
-# ƒXƒ^[ƒg
-# Ver1F ’èˆÊ’u‚Ö’…‚¢‚Ä‚©‚çƒXƒ^[ƒgB@ƒXƒ^[ƒgˆÊ’u‚É•t‚¯‚È‚¯‚ê‚Î¸”s
-# Ver2F •”‰®‚ÌŠO‚©‚ç‚Å‚à‘Î‰B–¢’m‚ÌˆÊ’u‚ÅPatrol‚É‘JˆÚ
+# ã‚¹ã‚¿ãƒ¼ãƒˆ
+# Ver1ï¼š å®šä½ç½®ã¸ç€ã„ã¦ã‹ã‚‰ã‚¹ã‚¿ãƒ¼ãƒˆã€‚ã€€ã‚¹ã‚¿ãƒ¼ãƒˆä½ç½®ã«ä»˜ã‘ãªã‘ã‚Œã°å¤±æ•—
+# Ver2ï¼š éƒ¨å±‹ã®ã©ã“ã‹ã‚‰ã§ã‚‚å¤–ã‹ã‚‰ã§ã‚‚å¯¾å¿œã€‚æœªçŸ¥ã®ä½ç½®ã§Patrolã«é·ç§»
 class Start(smach.State):
     def __init__(self):
-        smach.State.__init__(self, outcomes = ["start_succeeded", "start_failed",
-                                               "to_Back"],
-                             input_keys = ["start_loop_lim_in"])
+        smach.State.__init__(self, outcomes = ["start_finish", "navi_failed"],
+                                 input_keys = ["start_loop_lim_in"])
         self.navi_sc = rospy.ServiceProxy('/navi_location_server', NaviLocation)
-
+        #self.navi_sc= rospy.ServiceProxy("/apps/ad_navi_server", AdNaviSrv)
+        
     def execute(self, userdata):
         navi_count = 1
-        start_loop_lim = userdata.start_loop_lim_in
+        #start_loop_lim = userdata.start_loop_lim_in
         rospy.loginfo("MP: Executing state: Start")
-        tts_sc("Start room patrol")
-    # •”‰®‚Ü‚ÅˆÊ’u‚ÉˆÚ“®
-        # ƒiƒr‚ğ§ŒÀ‰ñ”“à‚ÅÀs
-        while not navi_count > start_loop_lim:
+        tts_sc("Start patrolling")
+        # éƒ¨å±‹ã¾ã§ä½ç½®ã«ç§»å‹•
+        # ãƒŠãƒ“ã‚’åˆ¶é™å›æ•°å†…ã§å®Ÿè¡Œ
+        while not navi_count > userdata.start_loop_lim_in:
             navi_res = self.navi_sc("start_pos").result
-            if navi_res: return "start_succeeded" #!!
+            if navi_res:
+                bc(-45, 0.5)
+                rospy.sleep(1.5)
+                return "start_finish" #!!
             else: navi_count =+ 1
-        return "start_failed"
+        return "navi_failed"
+
     
         # navi_res = self.navi_sc("start_pos").result
         # if navi_res: return "start_succeeded"
-        # # ƒiƒr‚ª¸”s‚µ‚½‚çAw’è‰ñ”‚Å‚â‚è’¼‚·
+        # # ãƒŠãƒ“ãŒå¤±æ•—ã—ãŸã‚‰ã€æŒ‡å®šå›æ•°ã§ã‚„ã‚Šç›´ã™
         # else:
         #     navi_count =+ 1
-        #     # w’è‰ñ”‚Åƒiƒr‚ª¸”s‚µ‚½‚çBack‚Ö‘JˆÚ‚·‚é
+        #     # æŒ‡å®šå›æ•°ã§ãƒŠãƒ“ãŒå¤±æ•—ã—ãŸã‚‰Backã¸é·ç§»ã™ã‚‹
         #     if navi_count > start_loop_lim: return "to_Back"
         #     else: return "start_failed"
                 
 
-# Ver1F WayPoint‚É‰ˆ‚Á‚ÄˆÚ“®‚µAƒ^[ƒQƒbƒg‚ğ’T‚·
-#       ˆÚ“®’†‚É•À—ñˆ—‚ÅPersonSerch‚µ‚½‚¢
+# Ver1ï¼š WayPointã«æ²¿ã£ã¦ç§»å‹•ã—ã€ã‚¿ãƒ¼ã‚²ãƒƒãƒˆã‚’æ¢ã™
+#       ç§»å‹•ä¸­ã«ä¸¦åˆ—å‡¦ç†ã§PersonSerchã—ãŸã„
 #        i_tra: Start     | o_tra: Charm, Observe,
 #        i_key: human_num |
-# Ver2F •”‰®‚ÌƒRƒXƒgƒ}ƒbƒv‚ğƒJƒƒ‰‚Ì¶‰E‰æŠp“à‚Å‘S‚Ä–„‚ß‚é‚æ‚¤‚ÉPatrol
-# @@@ —§‚Á‚Ä‚él‚ğŒ©‚Â‚¯‚½‚ç->@Charm@i!!!or DecideAction
-#       “|‚ê‚Ä‚¢‚é@@@@@@->@Observe
-# Ver3F lŒŸ’m‚É‹——£EƒTƒCƒY§ŒÀ‚ğİ‚¯‚ÄA–¾‚ç‚©‚Éˆá‚¤•¨‘Ì‚ğ‘«Ø‚è‚·‚é
-# Ver4F Œ¢”L‚É‚à‘Î‰
+# Ver2ï¼š éƒ¨å±‹ã®ã‚³ã‚¹ãƒˆãƒãƒƒãƒ—ã‚’ã‚«ãƒ¡ãƒ©ã®å·¦å³ç”»è§’å†…ã§å…¨ã¦åŸ‹ã‚ã‚‹ã‚ˆã†ã«Patrol
+# ã€€ã€€ã€€ ç«‹ã£ã¦ã‚‹äººã‚’è¦‹ã¤ã‘ãŸã‚‰->ã€€Charmã€€ï¼ˆ!!!or DecideAction
+#       å€’ã‚Œã¦ã„ã‚‹ã€€ã€€ã€€ã€€ã€€ã€€->ã€€Observe
+# Ver3ï¼š äººæ¤œçŸ¥ã«è·é›¢ãƒ»ã‚µã‚¤ã‚ºåˆ¶é™ã‚’è¨­ã‘ã¦ã€æ˜ã‚‰ã‹ã«é•ã†ç‰©ä½“ã‚’è¶³åˆ‡ã‚Šã™ã‚‹
+# Ver4ï¼š çŠ¬çŒ«ã«ã‚‚å¯¾å¿œ
 class PatrolRoom(smach.State):
     def __init__(self):
         smach.State.__init__(self,outcomes=['lying','standing',
-                                            'not_found_one','not_found_two'])
+                                            'found_nothing'],
+                             input_key = ["human_num_in"],
+                             output_keys=["human_num_out"])
         self.find_sc = rospy.ServiceProxy('/recognition/find', RecognitionFind)
-    #!! ñ‚ğ‰º‚°‚Äí‚Él‚ğ’T‚·
+        self.adnavi_sc = rospy.ServiceProxy("/apps/ad_navi_server", AdNaviSrv)
+        self.human_pose_sc = rospy.ServiceProxy("/person_feture/falling_down_rescue",SetFloat)
+        #self.detect_target_ac = 
+        self.head_pub = rospy.Publisher("/servo/head", Float64, queue_size=1)
+
+    #!! é¦–ã‚’ä¸‹ã’ã¦å¸¸ã«äººã‚’æ¢ã™
     def execute(self, userdata):
         rospy.loginfo("MP: Executing state: Patrol room")
-        self.search_sub = rospy.Subscriber('/mp/detect_target', #Bool,  ) #!!
+        #self.search_sub = rospy.Subscriber('/mp/detect_target', #Bool,  ) #!!
+        #while self.and not rospy.is_shutdown() and self.search_sub.data:
         
-        while not self.search_sub.data:
-        
-        tts_sc("Searching the target")
-        # ñ‚ğ‰º‚°‚ÄA’T‚µ‰ñ‚·
-        # !! 3WayPointˆÚ“®•Search
-        while self.find_sc(RecognitionFindRequest(target_name='person')).result == False:
-        
-        if 
-            # l‚Ìp¨ŒŸ’m
-            if getPosture().result == True:
+        # é¦–ã‚’ä¸‹ã’ã¦ã€æ¢ã—å›ã™
+        # !! 3WayPointç§»å‹•ï¼†Search
+        self.head_pub("30")
+        #while self.find_sc(RecognitionFindRequest(target_name='person')).result == False:
+            
+        # äººç™ºè¦‹
+        if self.find_sc(RecognitionFindRequest(target_name='person')).result:
+            # äººã®å§¿å‹¢æ¤œçŸ¥
+            #if getPosture().result == True:
+            while self.human_pose_sc(SetFloatRequest()).data:
                 tts_srv("Hi!")
                 return "to_charm"
         
-# Ver1F“|‚ê‚Ä‚¢‚él‚ÌˆÓ¯‚Ì—L–³
-#       ˆÓ¯‚ª‚ ‚éi‰¹ºŒxƒŒƒxƒ‹1,2j-> ObeyOrder(), in_order
-#       ‚È‚¢@@@-> remey
-# Ver2Fl‚ª“®‚¢‚Ä‚¢‚é‚©‚ğŒŸ’mmp_mojule.biometricCheck()
-# Ver3F“®‚©‚È‚¢ê‡A¶‘Ì‘ª’è‚ğ‚µ‚ÄA¶•¨‚©‚ğ”»’f
+# Ver1ï¼šå€’ã‚Œã¦ã„ã‚‹äººã®æ„è­˜ã®æœ‰ç„¡
+#       æ„è­˜ãŒã‚ã‚‹ï¼ˆéŸ³å£°è­¦å‘Šãƒ¬ãƒ™ãƒ«1,2ï¼‰-> ObeyOrder(), in_order
+#       ãªã„ã€€ã€€ã€€-> remey
+# Ver2ï¼šäººãŒå‹•ã„ã¦ã„ã‚‹ã‹ã‚’æ¤œçŸ¥mp_mojule.biometricCheck()
+# Ver3ï¼šå‹•ã‹ãªã„å ´åˆã€ç”Ÿä½“æ¸¬å®šã‚’ã—ã¦ã€ç”Ÿç‰©ã‹ã‚’åˆ¤æ–­
 class Observe(smach.State):
     def __init__(self):
-        smach.State.__init__(self,outcomes= [conscious, unconscious])
-        
-    
+        smach.State.__init__(self,outcomes= ["conscious", "unconscious"])
+
         
     def execute(self, userdata):
         rospy.loginfo("Executing state : Observe")
@@ -133,7 +145,8 @@ class Rescue(smach.State):
         smach.State.__init__(self,outcomes = ['to_call','to_exit'])
 
     def execute(self, userdata):
-        print("Executing state : TalkAndAlert")
+        rospy.loginfo("Executing state : Rescue")
+
 
 
 
@@ -148,7 +161,7 @@ class Call(smach.State):
 
 # i_tra: peace
 # o_tra: charm_done
-# ‚²ˆ¤›g Hi5
+# ã”æ„›å¬Œ Hi5
 class Charm(smach.State):
   pass
 
@@ -162,76 +175,84 @@ class Back(smach.State):
         self.navi_srv = rospy.ServiceProxy('navi_location_server', NaviLocation)
     def execute(self, userdata):
         print("Start going to operator")
+        
 
 def mpSmach():
-    top = smach.StateMachine(outcomes = ["mp_succeeded",
+    top = smach.StateMachine(outcomes = ["mp_finish",
                                          "mp_aborted",
-                                         "mp_preempted"])
+                                         "mp_preempted",
+                                         "guided"])
     top.userdata.start_loop_lim = 2
     top.userdata.human_num = 0
-    top.userdata.warn_level = 0
+    top.userdata.warn_level = 1
     top.userdata.action_order = ""
     with top:
         smach.StateMachine.add('Start', Start(),
                                 transitions = {'start_finish':'PatrolRoom',
-                                               "start_failed":"Start",
-                                               "to_Back":"Back"},
-                                remapping = {"start_loop__lim_in":"start_loop_lim"})
+                                               "navi_failed":"Start"},
+                                remapping = {"start_loop_lim_in":"start_loop_lim"})
         smach.StateMachine.add('PatrolRoom', PatrolRoom(),
                                 transitions = {'found_lying':'TalkAndAlert',
                                             'found_standing':'Back',
-                                            'not_found_one':'PatrolRoom',
+                                            'found_failed':'Back',
                                             'not_found_two':'Back'})
         smach.StateMachine.add('Observe', Observe(),
                                 transitions = {'to_call':'Call',
                                             'to_exit':'Back'})
+        smach.StateMachine.add('Rescue', Rescue(),
+                                transitions = {'rescue_finish':'guided'})
         smach.StateMachine.add('Call', Call(),
                                 transitions = {'call_finish':'Back'})
         smach.StateMachine.add('Back', Back(),
-                                transitions = {'all_finish':'finish_sm_top'})
-        
+                                transitions = {'all_finish':'mp_finish'})
+
     #outcome = top.execute()
   
-def createNode(node_name):
-    rospy.init_node(node_name)
-    rospy.loginfo('Ready to start **%s**', node_name)
-  
-# accoding to original start timer setting
-#def actualMain():
-#  createNode()
-  
-# ƒfƒ‚‚Åƒpƒgƒ[ƒ‹‚ğ‚·‚®‚ÉÀs
-# 
-def demoMain():
-    createNode("mp_demo")
-    mp_sm = mpSmach()
-    # ƒfƒ‚ SmachÀs
-    mp_sm_outcome = mp_sm.top.execute()
-    
-    rospy.spin()
+        
+class mpFuncs():
+    def __init__(self):
+        rospy.init_node("")
+        rospy.loginfo('Ready to start **%s**', node_name)
+        
+    def createNode(self, node_name):
+        rospy.init_node(node_name)
+        rospy.loginfo('Ready to start **%s**', node_name)
+        
+    # ãƒ‡ãƒ¢ã§ãƒ‘ãƒˆãƒ­ãƒ¼ãƒ«ã‚’ã™ãã«å®Ÿè¡Œ
+    # 
+    def demoMain(self):
+        createNode("mp_demo")
+        MP_SMACH = mpSmach()
+        # ãƒ‡ãƒ¢ Smachå®Ÿè¡Œ
+        mp_demo_outcome = MP_SMACH.top.execute()
+        
+        rospy.spin()
 
-# ’èˆÊ’u‚É‚Â‚¢‚Äƒpƒgƒ[ƒ‹‚ğÀsimp_modeFŠO•”‚Åˆê’èŠÔŠu‚ÌŠÔ‚ÉŠî‚Ã‚¢‚½Àsj
-# !!@•”‰®‚É“ü‚Á‚Ä‚¢‚È‚¢ó‘Ô‚©‚çƒXƒ^[ƒgF Navi{EnterRoom ¨ patrolRoom
-# goal-->     Šm”F‚·‚éZl‚Ìİ’è”A
-# Response--> ¬Œ÷A’†~A‰¡æ‚è
-# Feedback--> SmachƒXƒe[ƒg
-# !!! Aborted‚É‚È‚éó‹µ‚ğ’²‚×‚é
-def runMpAcserver():
-    createNode("mp_acserver")
-    mp_sm = mpSmach()
-    ASW = ActionServerWrapper('mp_master_acserver', MpAction,
-                              wrapped_container  = mp_sm.top,
-                              succeeded_outcomes = ['mp_succeeded'],
-                              aborted_outcomes   = ['mp_aborted'],
-                              preempted_outcomes = ['mp_preempted'],
-                              goal_key = 'goal_msg',
-                              result_key = 'result_msg')
-  # Run the server in a background thread
-    ASW.run_server()
-    rospy.spin()
+    # å®šä½ç½®ã«ã¤ã„ã¦ãƒ‘ãƒˆãƒ­ãƒ¼ãƒ«ã‚’å®Ÿè¡Œï¼ˆmp_modeï¼šå¤–éƒ¨ã§ä¸€å®šé–“éš”ã®æ™‚é–“ã«åŸºã¥ã„ãŸå®Ÿè¡Œï¼‰
+    # !!ã€€éƒ¨å±‹ã«å…¥ã£ã¦ã„ãªã„çŠ¶æ…‹ã‹ã‚‰ã‚¹ã‚¿ãƒ¼ãƒˆï¼š Naviï¼‹EnterRoom â†’ patrolRoom
+    # goal-->     ç¢ºèªã™ã‚‹ä½äººã®è¨­å®šæ•°ã€
+    # Response--> æˆåŠŸã€ä¸­æ­¢ã€æ¨ªå–ã‚Š
+    # Feedback--> Smachã‚¹ãƒ†ãƒ¼ãƒˆ
+    # !!! Abortedã«ãªã‚‹çŠ¶æ³ã‚’èª¿ã¹ã‚‹
+    def mpAcserver(self):
+        createNode("mp_acserver")
+        mp_sm = mpSmach()
+        ASW = ActionServerWrapper('mp_master_acserver', MpAction,
+                                wrapped_container  = mp_sm.top,
+                                succeeded_outcomes = ['mp_succeeded'],
+                                aborted_outcomes   = ['mp_aborted'],
+                                preempted_outcomes = ['mp_preempted'],
+                                goal_key = 'goal_msg',
+                                result_key = 'result_msg')
+    # Run the server in a background thread
+        ASW.run_server()
+        rospy.spin()
+        
 
-def mpAcclientTest():
-  pass
+    # accoding to original start timer setting
+    #def actualMp(): 
+
+
 
 if __name__ == '__main__':
     pass

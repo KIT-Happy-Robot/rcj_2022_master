@@ -12,7 +12,7 @@ from std_msgs.msg import String, Float64
 import smach
 # import smach_ros
 import roslib
-from happymimi_msgs.srv import StrTrg
+from happymimi_msgs.srv import StrTrg, SimpleTrg, SetFloat
 sys.path.insert(0, '/home/athome/catkin_ws/src/mimi_common_pkg/scripts')
 #from common_action_client import *
 #from common_function import *
@@ -21,7 +21,10 @@ sys.path.insert(0, '/home/athome/catkin_ws/src/mimi_voice_control/src')
 from happymimi_voice_msgs.srv import *
 from geometry_msgs.msg import Twist
 from happymimi_navigation.srv import NaviLocation
-from happymimi_recognition_msgs.srv import RecognitionFind, RecognitionFindRequest, RecognitionLocalizeRequest
+from happymimi_recognition_msgs.srv import (RecognitionFind, 
+                                            RecognitionFindRequest, 
+                                            RecognitionLocalizeRequest)
+                                            # MotionBool, MotionBoolRequest)
 base_path = roslib.packages.get_pkg_dir('happymimi_teleop') + '/src/'
 sys.path.insert(0, base_path)
 from base_control import BaseControl
@@ -29,15 +32,17 @@ reco_path = roslib.packages.get_pkg_dir('recognition_processing') + '/src/'
 sys.path.insert(0, reco_path)
 from recognition_tools import RecognitionTools
 import roslib.packages
-happymimi_voice_path = roslib.packages.get_pkg_dir("happymimi_voice")+"/../config/wave_data/aram.wav"
-sec_happymimi_voice_path = roslib.packages.get_pkg_dir("happymimi_voice")+"/../config/wave_data/ga9du-ecghy2.wav"
+#happymimi_voice_path = roslib.packages.get_pkg_dir("happymimi_voice")+"/../config/wave_data/aram.wav"
+#sec_happymimi_voice_path = roslib.packages.get_pkg_dir("happymimi_voice")+"/../config/wave_data/ga9du-ecghy2.wav"
 from real_time_navi.srv import RealTimeNavi
 from playsound import playsound
 from send_gmail.srv import SendGmail
-tts_srv = rospy.ServiceProxy('/tts', StrTrg)
+#tts_srv = rospy.ServiceProxy('/tts', StrTrg)
 rt = RecognitionTools()
 #import pyaudio
 #now_dt = datetime.datetime.today()
+
+from monitoring_patrol.srv import AedLocationInfo, AedLocation
 
 class Start(smach.State):
     def __init__(self):
@@ -47,7 +52,7 @@ class Start(smach.State):
 
     def execute(self, userdata):
         rospy.loginfo("Executing state: Start")
-        tts_srv("It's time to confirm")
+        #tts_srv("It's time to confirm")
         self.navi_srv('start')
         return 'start_finish'
 
@@ -73,44 +78,44 @@ class SearchPerson(smach.State):
         rospy.sleep(1.5)
         self.find_result = self.find_srv(RecognitionFindRequest(target_name='person')).result
         rospy.sleep(1.0)
-        #self.head_pub.publish(0)
+        self.head_pub.publish(0)
         if self.find_result == True:
             print("found a person")
             request = RecognitionLocalizeRequest()
             request.target_name = "person"
             centroid = rt.localizeObject(request).point
             person_height = centroid.z
-            prin(person_height)
+            print(person_height)
             standard_z = 0.4
             if person_height >= standard_z:
                 self.head_pub.publish(0)
-                tts_srv("Hi!")
+                #tts_srv("Hi!")
                 target_name = 'standing_person'
                 print('found a standing person')
                 #now_dt = datetime.datetime.today()
                 #now_time = now_dt.time()
                 #print now_dt
                 #print now_time
-                tts_srv("What's up?")
+                #tts_srv("What's up?")
                 return 'found_standing'
             else:
-                tts_srv("Hi! Found you lying down!")
+                #tts_srv("Hi! Found you lying down!")
                 target_name = 'lying_person'
-                self.real_time_navi('set')
+                self.real_time_navi('add', lying_person)
                 return 'found_lying'
-            # 人が居ない場合
+        # 人が居ない場合
         elif self.find_result == False:
             print("found a person.")
-            tts_srv("found no person.")
+            #tts_srv("found no person.")
             if navi_counter == 1:
-                tts_srv("clear")
+                #tts_srv("clear")
                 self.navi_srv('search_2')
                 rospy.sleep(0.5)
                 rospy.loginfo('finish moving to another place')
                 return 'not_found_one'
             elif navi_counter > 1:
                 print("found no person again")
-                tts_srv("Found no person again.")
+                #tts_srv("Found no person again.")
                 return 'not_found_two'
 
 class TalkAndAlert(smach.State):
@@ -121,20 +126,26 @@ class TalkAndAlert(smach.State):
         self.find_srv = rospy.ServiceProxy('/recognition/find', RecognitionFind)
         self.head_pub = rospy.Publisher('/servo/head', Float64, queue_size = 1)
         self.mail_srv = rospy.ServiceProxy('/send_gmail_server', SendGmail)
+        #self.md_sc = rospy.ServiceProxy("md_server", MotionBool)
+        self.aed_sc = rospy.ServiceProxy("/info/near_aed_location", AedLocationInfo)
+
     def execute(self, userdata):
         print("Executing state : TalkAndAlert")
         for i in range(3):
-            tts_srv("Are you okey")
+            #tts_srv("Are you okey")
             #yes_no_result = self.yes_no_srv().result#####
-            self.find_result = self.find_srv(RecognitionFindRequest(target_name='person')).result
-            # 人が居なかった場合
-            if self.find_result == False:
+            # self.find_result = self.find_srv(RecognitionFindRequest(target_name='person')).result
+
+            md_result = self.ms_sc(50).result
+            # 人が動いた場合
+            if md_result: #self.find_result == False:
                 print('The person is away here')
-                tts_srv("You are out of my eyes. You probably woke up")
+                #tts_srv("You are out of my eyes. You probably woke up")
                 return 'to_exit'
-            #　人を見つけた場合
-            elif self.find_result == True:
+            #　人が反応なしの場合
+            elif md_result == False: #self.find_result == True:
                 pass
+            # get hight of lying person
             request = RecognitionLocalizeRequest()
             request.target_name = "person"
             centroid = rt.localizeObject(request).point
@@ -153,9 +164,10 @@ class TalkAndAlert(smach.State):
             else:
                 pass
         #　立たない、応答がない場合
-        else:
+        else: #!!
             for i in range(3):
-                playsound(happymimi_voice_path)
+                #playsound(happymimi_voice_path)
+                self.aed_sc("univ tokyo building 2", 400)
                 print('send mail for help')
                 self.mail_srv('kit.robocup.home@gmail.com',
                               'gewretvedgpzlobj',
@@ -164,7 +176,7 @@ class TalkAndAlert(smach.State):
                               '【KitHappyRobot】人名に関するお知らせ',
                               '家で人が意識不明の状態で倒れています。' + '至急、救急車を呼んでください。',
                              )
-                tts_srv("A person losing conciousness")
+                #tts_srv("A person losing conciousness")
                 request = RecognitionLocalizeRequest()
                 request.target_name = "person"
                 centroid = rt.localizeObject(request).point
@@ -175,8 +187,8 @@ class TalkAndAlert(smach.State):
                 if person_height > standard_z:
                     self.head_pub.publish(0)
                     print("Confirm you stand")
-                    tts_srv("Are you OK?")
-                    tts_srv("take a nap")
+                    #tts_srv("Are you OK?")
+                    #tts_srv("take a nap")
                     return 'to_exit'
                     break
                 else:
@@ -190,13 +202,14 @@ class Call(smach.State):
         self.navi_srv = rospy.ServiceProxy('navi_location_server', NaviLocation)
         self.find_srv = rospy.ServiceProxy('/recognition/find', RecognitionFind)
         self.head_pub = rospy.Publisher('/servo/head', Float64, queue_size = 1)
+
         self.bc = BaseControl()
     def execute(self, userdata):
         print("Executing state : Call")
-        tts_srv("I'll call anyone for help")
+        #tts_srv("I'll call anyone for help")
         self.navi_srv('call_point')
         for i in range(2):
-            playsound(happymimi_voice_path)
+            #playsound(happymimi_voice_path)
             #tts_srv("Help! A person was found unconscious in this house. Someone please call an ambulance")
             self.find_result = self.find_srv(RecognitionFindRequest(target_name='person')).result
             if self.find_result == True:
@@ -224,15 +237,14 @@ class Exit(smach.State):
         self.navi_srv = rospy.ServiceProxy('navi_location_server', NaviLocation)
     def execute(self, userdata):
         print("Start going to operator")
-        tts_srv("I'll be back")
+        #tts_srv("I'll be back")
         start_time = time.time()
         stop_time = 7
-        while (time.time() - start_time) <= stop_time:
-            playsound(sec_happymimi_voice_path)
-
+        #while (time.time() - start_time) <= stop_time:
+            #playsound(sec_happymimi_voice_path)
         self.navi_srv("start")
         print("finish confirming of human life safety")
-        tts_srv("finish confirming")
+        #tts_srv("finish confirming")
         return 'all_finish'
 
 if __name__ == '__main__':
