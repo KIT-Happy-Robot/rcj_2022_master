@@ -39,7 +39,7 @@ class ApproachGuest(smach.State):
         rospy.loginfo("Executing state: APPROACH_GUEST")
         # return 'approach_finish'
         guest_num = userdata.g_count_in
-        guest_name = "human_" + str(guest_num)
+       # guest_name = "human_" + str(guest_num)
        # guest_name = "human_0"
        #human_loc = rospy.get_param('/tmp_human_location')
         
@@ -51,21 +51,24 @@ class ApproachGuest(smach.State):
         self.navi_srv('fmm')
 
         if guest_num == 0:
+            #guest_name = human_1
             self.head_pub.publish(0)
             rospy.sleep(1.0)
             #self.bc.translateDist(1.0,0.2)
            # rospy.sleep(1.0)
-           # self.bc.rotateAngle(-90, 1.0)
+           # self.bc.rotateAngle(-100, 1.0)
            # rospy.sleep(1.0)
-           # self.bc.translateDist(0.1,0.2)
+           # self.bc.translateDist(0.8,0.2)
            # rospy.sleep(1.0)
             result = self.gen_coord_srv().result
             print(result)
             rospy.sleep(1.0)
+            #guest_name = rospy.get_param("/tmp_human_location")
             #result = self.ap_srv(data = human_0)
-            result = self.ap_srv(data = guest_name)
+            #result = self.ap_srv(data = guest_name[0])
 
         elif guest_num == 1:
+           # guest_name = human_2
             self.head_pub.publish(0)
             self.bc.rotateAngle(-60, 1.0)
             rospy.sleep(1.0)
@@ -75,6 +78,7 @@ class ApproachGuest(smach.State):
             rospy.sleep(1.0)
             #result = self.ap_srv(data = human_1)
             print(result)
+            #guest_name =rospy,get_param("/tmp_human_location")
             #self.bc.rotateAngle(-330,0.2)
             # self.bc.rotateAngle(-10)
             # for i in range(3):
@@ -84,29 +88,38 @@ class ApproachGuest(smach.State):
                 # else:
                     # break
                     # self.bc.rotateAngle(-10)
-            result = self.ap_srv(data = guest_name)
+            #result = self.ap_srv(data = guest_name[0])
         elif guest_num == 2:
+            #guest_name = human_3
             self.head_pub.publish(0)
             rospy.sleep(1.0)
             #self.bc.translateDist(0.5,0.2)
             #rospy.sleep(1.0)
-            self.bc.rotateAngle(-90, 1.0)
+            self.bc.rotateAngle(-100, 1.0)
             rospy.sleep(1.0)
-            self.bc.translateDist(0.2,0.2)   
+            self.bc.translateDist(0.8,0.2)   
             #result = self.ap_srv(data = human_1)
             #rospy.sleep(2.0)
             result = self.gen_coord_srv().result
             #human_loc = rospy.get_param('/tmp_human_location')
             #self.human_cord = human_loc[human_1]
             #self.navi_coord_srv (loc_coord = human_1)
-            rospy.sleep(1.0)
-            result = self.ap_srv(data = guest_name)
+            #rospy.sleep(1.0)
+            #result = self.ap_srv(data = guest_name)
             #if result == false:
             #    guest_name = human_1
             #    result = self.ap_srv(data = geust_name)
         else:
             pass
-        #result = self.ap_srv(data = guest_name)
+        guest_param = {}
+        guest_param = rospy.get_param("tmp_human_location")
+        g_keys = list(guest_param.keys())
+        print(g_keys)
+        guest_name = g_keys[0] # "human_0"
+
+        print(guest_name)
+        #self.navi_srv("guest_name")
+        result = self.ap_srv(data = guest_name)
         #print(result)
         self.head_pub.publish(0)
         if result:
