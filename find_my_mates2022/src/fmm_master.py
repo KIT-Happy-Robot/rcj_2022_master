@@ -40,7 +40,7 @@ class ApproachGuest(smach.State):
         # return 'approach_finish'
         guest_num = userdata.g_count_in
         guest_name = "human_" + str(guest_num)
-        #guest_name = "human_0"
+       # guest_name = "human_0"
        #human_loc = rospy.get_param('/tmp_human_location')
         
         self.bc.rotateAngle(180,1.0)
@@ -92,7 +92,7 @@ class ApproachGuest(smach.State):
             #rospy.sleep(1.0)
             self.bc.rotateAngle(-90, 1.0)
             rospy.sleep(1.0)
-            #self.bc.translateDist(0.1,0.2)   
+            self.bc.translateDist(0.2,0.2)   
             #result = self.ap_srv(data = human_1)
             #rospy.sleep(2.0)
             result = self.gen_coord_srv().result
@@ -101,9 +101,9 @@ class ApproachGuest(smach.State):
             #self.navi_coord_srv (loc_coord = human_1)
             rospy.sleep(1.0)
             result = self.ap_srv(data = guest_name)
-            if result == false:
-                guest_name = human_1
-                result = self.ap_srv(data = geust_name)
+            #if result == false:
+            #    guest_name = human_1
+            #    result = self.ap_srv(data = geust_name)
         else:
             pass
         #result = self.ap_srv(data = guest_name)
@@ -151,18 +151,26 @@ class FindFeature(smach.State):
             self.f1_sentence = "Gender is " + self.ffv.getSex(self.guest_name)            
             self.f2_sentence = "Age is " + self.ffv.getAge()
         elif userdata.g_count_in == 1:
-            self.head_pub.publish(0)
-            self.base_control.translateDist(-0.3,0.2)
-            rospy.sleep(0.5)
             self.head_pub.publish(-15)
-            rospy.sleep(0.5)
+            self.base_control.translateDist(-0.5,0.2)
+            #self.head_pub.publish(-15)
+            rospy.sleep(4.0)
             #self.f1_sentence = "Height is about " + self.ffr.getHeight() + " cm"
             self.f1_sentence = "Skin color is " + self.ffr.getSkinColor()
+            self.base_control.translateDist(-0.5,0.2)
+            self.head_pub.publish(-15)
+            rospy.sleep(4.0)
             self.f2_sentence = "Cloth color is " + self.ffr.getClothColor()
             # self.f2_sentence = "Age is " + self.ffv.getAge()
         elif userdata.g_count_in == 2:
-            self.f1_sentence = "Description1 is No information"
-            self.f2_sentence = "Description2 is No information"
+            #self.f1_sentence = "Description1 is No information"
+            #self.f2_sentence = "Description2 is No information"
+            self.base_control.translateDist(-0.5,0.2)
+            rospy.sleep(4.0)
+            self.f1_sentence = self.ffr.getMask()
+            self.head_pub.publish(30)
+            rospy.sleep(4.0)
+            self.f2_sentence = "Pants color is " + self.ffr.getPansColor()
             pass
         else:
             return 'find_finish'

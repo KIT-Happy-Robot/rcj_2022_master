@@ -104,7 +104,7 @@ class FeatureFromRecog():
         #服
         self.cloth_srv  = rospy.ServiceProxy('/person_feature/cloth_color', SetStr)
         #ズボン
-        #self.pants_srv = rospy.ServiceProxy('/person_feature/pants_color', SetStr)
+        self.pants_srv = rospy.ServiceProxy('/person_feature/pants_color', SetStr)
         #顔
         self.skin_srv = rospy.ServiceProxy('/person_feature/skin_color', SetStr)
         #髪
@@ -113,22 +113,22 @@ class FeatureFromRecog():
         #self.height      = "null"
         self.cloth_color = "null"
         self.skin_color = "null"
-        #self.pants_color = "null"
+        self.pants_color = "null"
         #selk.hair_color = "null"
-        #self.mask ="null"
+        self.mask ="null"
         #Topic
         #self.head_pub = rospy.Publisher('/servo/head', Float64, queue_size = 1)
         #self.bc = BaseControl()
     
-    #def getPansColor(self):
-    #    self.pants_color = "null"
-    #    self.pants_color = self.pants_srv().result
+    def getPansColor(self):
+        self.pants_color = "null"
+        self.pants_color = self.pants_srv().result
         
-    #    if self.pants_color == '':
-    #        return "none"
+        if self.pants_color == '':
+            return "none"
 
-    #    else:
-    #        return self.pants_color
+        else:
+            return self.pants_color
 
 
     def getSkinColor(self):
@@ -140,19 +140,18 @@ class FeatureFromRecog():
         #else if self.skin_color == 'white':
         #    self.mask = "mask"
         #    return "none"
-        
         else:
             return self.skin_color
     
-    #def getMask(self):
-    #    self.mask = "null"
-    #    self.mask = self.skin_srv().result
+    def getMask(self):
+        self.mask = "null"
+        self.mask = self.skin_srv().result
 
-    #    if self.skin_color == 'white':
-    #        self.mask = "wearing a mask"
-    #       return "none"
-    #    else:
-    #        self.mask = "not wearing a mask"
+        if self.mask == 'white':
+            self.mask = "wearing a mask"
+            return "none"
+        else:
+            self.mask = "not wearing a mask"
 
 
     #def getHairColo(self):

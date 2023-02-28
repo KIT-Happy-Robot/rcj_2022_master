@@ -58,13 +58,13 @@ class FindBag(smach.State):
         self.poseDataCheck()
         rospy.sleep(1.5)
         while not rospy.is_shutdown():
-            if self.pose_msg == '0:left':
+            if self.pose_msg == 'left':
                 tts_srv('/cml/bag_left')
                 tts_srv('/cml/_bag')
                 self.grasp_bag('right', [0.25, 0.4])
                 self.base_control.rotateAngle(10, 0.5)
                 break
-            elif self.pose_msg == '0:right':
+            elif self.pose_msg == 'right':
                 tts_srv('/cml/bag_right')
                 tts_srv('/cml/_bag')
                 self.grasp_bag('left', [0.25, 0.4])
