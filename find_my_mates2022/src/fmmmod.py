@@ -7,7 +7,7 @@ import tf
 import rospy
 import rosparam
 import roslib
-from happymimi_msgs.srv import SimpleTrg, StrTrg, StrToStr, SetFloat, SetStr
+from happymimi_msgs.srv import SimpleTrg, StrTrg, StrToStr, SetFloat, SetStr, StrToStrResponse
 from happymimi_voice_msgs.srv import TTS, YesNo, StringToString
 
 #from happymimi_voice_msgs.srv import StringToString
@@ -30,7 +30,7 @@ class FeatureFromVoice():
 
         # Value
         self.name = "null"
-        self.age  = "null"
+        #self.age  = "null"
         self.sex  = "null"
 
     def yesNo(self):
@@ -54,28 +54,28 @@ class FeatureFromVoice():
                 self.name = "guest"
         return self.name
 
-    def getAge(self):
-        self.age = "null"
-        for i in range(3):
-            age_res = self.feature_srv(req_data = "old")
-            if i == 3:
-                self.age = "unknown"
-                break
-            elif age_res.result:
-                self.age = age_res.res_data
-                tts_srv("Your age is" + self.age)
+    #def getAge(self):
+    #    self.age = "null"
+     #   for i in range(3):
+      #      age_res = self.feature_srv(req_data = "old")
+       #     if i == 3:
+        #        self.age = "unknown"
+         #       break
+          #  elif age_res.result:
+          #      self.age = age_res.res_data
+           #     tts_srv("Your age is" + self.age)
                 # tts_srv("Is this OK? Please answer yes or no")
-                wave_srv("/fmm/answer_yn")
-                if self.yesNo():
-                    break
-                else:
+            #    wave_srv("/fmm/answer_yn")
+             #   if self.yesNo():
+              #      break
+              #  else:
                     # tts_srv("Sorry. I'm going to ask you one more time.")
                     # wave_srv("/fmm/ask_again")
-                    pass
-            else:
+               #     pass
+          #  else:
                 # tts_srv("Sorry. I'm going to ask you one more time.")
-                wave_srv("/fmm/ask_again")
-        return self.age
+           #     wave_srv("/fmm/ask_again")
+       # return self.age
 
     def getSex(self,req):
         self.sex = "null"
@@ -109,6 +109,7 @@ class FeatureFromRecog():
         self.skin_srv = rospy.ServiceProxy('/person_feature/skin_color', SetStr)
         #髪
         #self.hair_srv = rospy.ServiceProxy('/person_feature/hair_color', SetStr)
+        self.glass_mask_srv = rospy.ServiceProxy("/person/feature/glass", StrToStr)
         # Value
         #self.height      = "null"
         self.cloth_color = "null"
@@ -116,6 +117,8 @@ class FeatureFromRecog():
         self.pants_color = "null"
         #selk.hair_color = "null"
         self.mask ="null"
+        self.glass = True
+        self.get_glass = "null"
         #Topic
         #self.head_pub = rospy.Publisher('/servo/head', Float64, queue_size = 1)
         #self.bc = BaseControl()
@@ -145,13 +148,27 @@ class FeatureFromRecog():
     
     def getMask(self):
         self.mask = "null"
-        self.mask = self.skin_srv().result
+        self.glass, self.mask = self.glass_mask_srv().result
 
-        if self.mask == 'white':
+        if self.mask == True:
             self.mask = "wearing a mask"
             return "none"
         else:
             self.mask = "not wearing a mask"
+    
+    def getGlass(self):
+        self.get_glass = "null"        
+        self.glass, self.mask =self.glass_mask_srv().result
+        if self.glass == "None":
+            self.get_glass = "not wearing a glass"
+            return "none"
+        else:
+            self.get_glass = "wearing a glass"
+            
+
+
+
+    
 
 
     #def getHairColo(self):
@@ -198,7 +215,15 @@ class LocInfo():
         self.loc_name = "null"
         self.human_dict = rospy.get_param('/tmp_human_location')
         print(self.human_dict)
+        
+        #g_keys = list(self.human_dict.keys())
+        #target_name = g_keys[0]
+        #h_rpy = self.human
+        
+
+        #target_name = self.human_dict[0]
         h_rpy = self.human_dict[target_name]
+        print(h_rpy)
         h_xy = (h_rpy[0], h_rpy[1])
         for i in range(len(self.loc_name_list)):
             self.loc_name = self.loc_name_list[i]

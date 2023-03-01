@@ -43,7 +43,7 @@ class ApproachGuest(smach.State):
        # guest_name = "human_0"
        #human_loc = rospy.get_param('/tmp_human_location')
         
-        self.bc.rotateAngle(180,1.0)
+        self.bc.rotateAngle(180, 0, 1.0, 10)
         # tts_srv("Move to guest")
         wave_srv("/fmm/move_guest")
         
@@ -70,10 +70,11 @@ class ApproachGuest(smach.State):
         elif guest_num == 1:
            # guest_name = human_2
             self.head_pub.publish(0)
-            self.bc.rotateAngle(-60, 1.0)
+            self.bc.rotateAngle(-65, 0, 1.0, 10)
             rospy.sleep(1.0)
             self.bc.translateDist(0.2,0.2)
             #rospy.sleep(2.0)
+            rospy.set_param("/map_range/max_x",1.8)
             result = self.gen_coord_srv().result
             rospy.sleep(1.0)
             #result = self.ap_srv(data = human_1)
@@ -95,11 +96,12 @@ class ApproachGuest(smach.State):
             rospy.sleep(1.0)
             #self.bc.translateDist(0.5,0.2)
             #rospy.sleep(1.0)
-            self.bc.rotateAngle(-100, 1.0)
+            self.bc.rotateAngle(-100, 0, 1.0, 10)
             rospy.sleep(1.0)
             self.bc.translateDist(0.8,0.2)   
             #result = self.ap_srv(data = human_1)
             #rospy.sleep(2.0)
+            rospy.set_param("/map_range/max_x",1.8)
             result = self.gen_coord_srv().result
             #human_loc = rospy.get_param('/tmp_human_location')
             #self.human_cord = human_loc[human_1]
@@ -116,7 +118,6 @@ class ApproachGuest(smach.State):
         g_keys = list(guest_param.keys())
         print(g_keys)
         guest_name = g_keys[0] # "human_0"
-
         print(guest_name)
         #self.navi_srv("guest_name")
         result = self.ap_srv(data = guest_name)
@@ -154,7 +155,14 @@ class FindFeature(smach.State):
         self.base_control.translateDist(0.3,0.2)            
         self.guest_name = self.ffv.getName()
         #print (self.guest_name)
-        self.guest_loc = self.li.nearPoint("human_" + str(userdata.g_count_in))
+        #self.guest_loc = self.li.nearPoint("human_" + str(userdata.g_count_in))
+        self.guest_loc = self.li.nearPoint("human_0")
+        #guest_param = {}
+        #guest_param = rospy.get_param("tmp_human_location")
+        #g_keys = list(guest_param.keys())
+        #name = g_keys[0]
+        #print(name)
+        #self.guest_loc = self.li.nearPoint()
         self.gn_sentence = self.guest_name + " is near " + self.guest_loc
         #self.base_control = BaseControl()
         # self.gn_sentence = (self.guest_name + " is near table")
@@ -162,7 +170,7 @@ class FindFeature(smach.State):
             # self.f1_sentence = "Height is " + self.ffr.getHeight()
             # self.f2_sentence = "Cloth color is " + self.ffr.getClothColor()
             self.f1_sentence = "Gender is " + self.ffv.getSex(self.guest_name)            
-            self.f2_sentence = "Age is " + self.ffv.getAge()
+            #self.f2_sentence = "Age is " + self.ffv.getAge()
         elif userdata.g_count_in == 1:
             self.head_pub.publish(-15)
             self.base_control.translateDist(-0.5,0.2)
@@ -178,12 +186,16 @@ class FindFeature(smach.State):
         elif userdata.g_count_in == 2:
             #self.f1_sentence = "Description1 is No information"
             #self.f2_sentence = "Description2 is No information"
-            self.base_control.translateDist(-0.5,0.2)
+            self.base_control.translateDist(-0.6,0.2)
             rospy.sleep(4.0)
+            #self.f1_sentence = self.ffr.getMask()
+            #self.head_pub.publish(30)
+            #rospy.sleep(4.0)
+            #self.f2_sentence = "Pants color is " + self.ffr.getPansColor()
+            self.head_pub(-15)
+            rospy.sleep()
             self.f1_sentence = self.ffr.getMask()
-            self.head_pub.publish(30)
-            rospy.sleep(4.0)
-            self.f2_sentence = "Pants color is " + self.ffr.getPansColor()
+            self.f2_sentence = self.ffr.get_glass()
             pass
         else:
             return 'find_finish'
@@ -215,7 +227,7 @@ class TellFeature(smach.State):
         # tts_srv("Move to operator")
         rospy.sleep(0.2)
         wave_srv("/fmm/move_operator")
-        self.bc.rotateAngle(180, 1.0)
+        self.bc.rotateAngle(180, 0, 1.0, 10)
         rospy.sleep(0.5)
         navi_result = self.navi_srv('operator').result
         # navi_result = True
